@@ -51,3 +51,6 @@ class TestInBounds:
 
     def test_outBounds(self):
         assert sf.inBounds((5,5),[(1,1),(0,6)]) == 0
+
+    def test_outBoundForAction(self):
+        assert sf.inBounds((5, 6), [(1, 1), (0, 6)]) == 0
