@@ -1,0 +1,20 @@
+name: Python application
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install pytest
+      run: |
+        pip install pytest
+      
+
+    - name: Test with pytest
+      run: |
+        pip install pytest
+        pytest
