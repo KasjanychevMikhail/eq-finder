@@ -9,6 +9,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: install pytest
+      run: |
+        pip install pytest
+      
+
     - name: Test with pytest
       run: |
         pip install pytest
