@@ -1,0 +1,23 @@
+name: Running PyTest
+
+on: [push]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+          python-version: 3.8
+    - name: Update pip
+      run: |
+        python -m pip
+    - name: Install PyTest
+      run: |
+        pip install pytest
+    - name: Run PyTest
+      run: |
+        python -m pytest
