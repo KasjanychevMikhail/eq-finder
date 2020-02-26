@@ -148,3 +148,7 @@ class TestCreateDistMatrix:
         coords = [[2, 2], [2, 2]]
         a = np.array(coords)
         assert sf.createDistMatrix(a).tolist() == [[0, 0], [0, 0]]
+
+    def testWORK(self):
+        matrix = [[0,1,1,2],[1,0,0,1],[1,0,0,1],[2,1,1,0]]
+        assert  sf.work(matrix,1.1) == [1,0,0]

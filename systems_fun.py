@@ -124,8 +124,11 @@ def createFileTopologStructPhasePort(envParams, mapParams, i, j):
     rhsCurrent = lambda X: mapParams.rhs(X, ud)
     sol = findEquilibria(rhsCurrent, mapParams.rhsJac, mapParams.bounds, mapParams.optMethodParams, ud,
                          mapParams.bordersEq)
-    np.savetxt('{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt'.format(i, j, env=envParams), sol, header=headerStr)
 
+    connected = work(createDistMatrix(sol[:,0:2]),5*1e-4)
+    data = sol[:, 2:5]
+    trueStr=mergePoints(connected,data)
+    np.savetxt('{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt'.format(i, j, env=envParams), sol[trueStr,:], header=headerStr)
 
 def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arrFirstParam, arrSecondParam):
     N, M = numberValuesParam1, numberValuesParam2
@@ -154,14 +157,20 @@ def createDistMatrix(coordinatesPoins):
             Matrix[i][j] = np.sqrt((X[i] - X[j])**2 + (Y[i] - Y[j])**2)
     return Matrix
 
-def work(distMatrix, args):
-    I, distThreshold = args
+def work(distMatrix, distThreshold):
     ######################
-    adjMatrix = (distMatrix <= distThreshold) * 1.0
+    currmatrix =np.array(distMatrix)
+    adjMatrix = (currmatrix <= distThreshold) * 1.0
     nComps, labels = connected_components(adjMatrix, directed=False)
-    with open(".\\multistability-clusters\\clust_par_{i:0>3}.txt".format(i=I), "w") as f:
-        allData = [nComps] + [l for l in labels]
-        f.write("# first row is a number of clusters, other rows are labels\n")
-        f.writelines([str(d) + "\n" for d in allData])
+    allData =  [l for l in labels]
     ######################
-    return 0
+    return allData
+
+def mergePoints(connectedPoints,nSnCnU):
+    arrDiffPoints = {}
+    for i in range (len(connectedPoints)):
+        pointParams = np.append(nSnCnU[i],connectedPoints[i])
+        if tuple(pointParams) not in arrDiffPoints:
+            arrDiffPoints[tuple(pointParams)]= i
+    return arrDiffPoints.values()
+
