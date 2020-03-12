@@ -18,6 +18,9 @@ jobs:
     - name: Install Matplotlib
       run: |
         pip install matplotlib
+    - name: Install Scipy
+      run: |
+        pip install scipy        
     - name: Install PyTest
       run: |
         pip install pytest
