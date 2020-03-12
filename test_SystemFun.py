@@ -99,10 +99,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, (1000, 100), ud, self.borders)
         data= res[:,2:5]
-        print data
         describe = sf.describePortrType(data.tolist())
-        print describe
-        print self.analyticFind(ud)
         assert describe == self.analyticFind(ud)
 
     def test_FindEqInSinglePoint2(self):
@@ -110,10 +107,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, (300, 30), ud, self.borders)
         data= res[:,2:5]
-        print data
         describe = sf.describePortrType(data.tolist())
-        print describe
-        print self.analyticFind(ud)
         assert describe == self.analyticFind(ud)
 
     def test_FindEqInSinglePoint3(self):
@@ -121,10 +115,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, (1000, 100), ud, self.borders)
         data= res[:,2:5]
-        print data
         describe = sf.describePortrType(data.tolist())
-        print describe
-        print self.analyticFind(ud)
         assert describe == self.analyticFind(ud)
 
 class TestCreateDistMatrix:
