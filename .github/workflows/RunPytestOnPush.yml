@@ -15,6 +15,9 @@ jobs:
     - name: Update pip
       run: |
         python -m pip
+    - name: Install Matplotlib
+      run: |
+        pip install matplotlib
     - name: Install PyTest
       run: |
         pip install pytest
