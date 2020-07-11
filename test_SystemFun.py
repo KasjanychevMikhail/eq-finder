@@ -69,15 +69,15 @@ class TestFindEquilibria:
 
     def analyticFind(self,params):
         a,b,c1,c2=params
-        #nSaddles, nSources, nSinks, nNonRough
+        #nSinks, nSaddles, nSources, nNonRough
         if ((a>0 and b>0 )  or (a<-1 and b>0 )):
-            result = (1,0,1,1)
-        elif((a>0 and b<0 )or(a<-1 and b<0) ):
             result = (1,1,0,1)
+        elif((a>0 and b<0 )or(a<-1 and b<0) ):
+            result = (0,1,1,1)
         elif(-1<a<0 and b>0):
-            result = (0, 0, 1, 2)
+            result = (1, 0, 0, 2)
         elif (-1 < a < 0 and b > 0):
-            result = (0, 1, 0, 2)
+            result = (0, 0, 1, 2)
         elif(a == -1 and b>0):
             result= (0)
         elif (a == -1 and b < 0):

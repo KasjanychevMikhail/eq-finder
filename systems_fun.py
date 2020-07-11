@@ -62,12 +62,18 @@ def describeEqType(eigvals):
 
 
 def describePortrType(dataEqSignatures):
-    nSaddles = len([eq for eq in dataEqSignatures if eq == [1, 0, 1]])
-    nSources = len([eq for eq in dataEqSignatures if eq == [0, 0, 2]])
-    nSinks = len([eq for eq in dataEqSignatures if eq == [2, 0, 0]])
-    nNonRough = len([eq for eq in dataEqSignatures if
-                     eq == [1, 1, 0] or eq == [0, 1, 1] or eq == [0, 2, 0]])
-    return (nSaddles, nSources, nSinks, nNonRough)
+    phSpaceDim = int(sum(dataEqSignatures[0]))
+    eqTypes = {(i, phSpaceDim-i):0 for i in range(phSpaceDim+1)}
+    nonRough = 0
+    for eqSign in dataEqSignatures:
+        nS, nC, nU = eqSign
+        if nC == 0:
+            eqTypes[(nU, nS)] += 1
+        else:
+            nonRough += 1
+    # nSinksn, nSources, nSaddles,  nNonRough
+    portrType = tuple([eqTypes[(i, phSpaceDim-i)] for i in range(phSpaceDim+1)] + [nonRough])
+    return portrType
 
 class ShgoEqFinder:
     def __init__(self, nSamples, nIters):
@@ -127,6 +133,15 @@ def createFileTopologStructPhasePort(envParams, mapParams, i, j):
                  'd = {par[1]}\n' +
                  'X  Y  nS  nC  nU  isSComplex  isUComplex  eigval1  eigval2\n' +
                  '0  1  2   3   4   5           6           7        8').format(par=ud)
+    fmtList = ['%+18.15f',
+               '%+18.15f',
+               '%2u',
+               '%2u',
+               '%2u',
+               '%2u',
+               '%2u',
+               '%+18.15f',
+               '%+18.15f', ]
     rhsCurrent = lambda X: mapParams.rhs(X, ud)
     sol = findEquilibria(rhsCurrent, mapParams.rhsJac, mapParams.bounds, ud, mapParams.bordersEq, mapParams.method,
                          mapParams.optMethodParams)
@@ -138,9 +153,9 @@ def createFileTopologStructPhasePort(envParams, mapParams, i, j):
         data = sol[:, 2:5]
         trueStr = mergePoints(clustering.labels_, data)
         np.savetxt("{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt".format(i, j, env=envParams), sol[list(trueStr), :],
-                   header=headerStr)
+                   header=headerStr,fmt=fmtList)
     else:
-        np.savetxt("{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt".format(i, j, env=envParams), sol, header=headerStr)
+        np.savetxt("{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt".format(i, j, env=envParams), sol, header=headerStr,fmt=fmtList)
 
 
 def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arrFirstParam, arrSecondParam):
@@ -201,18 +216,24 @@ class FourBiharmonicPhaseOscillators:
     def funG(self, fi):
         return -np.sin(fi + self.paramA) + self.paramR * np.sin(2 * fi + self.self.paramB)
 
-    def getFullSystem(self, X):
-        x1, x2, x3, x4 = X
-        return [self.paramW + 0.25 * self.funG(x1) * (x1 - x2 + x1 - x3 + x1 - x4),
-                self.paramW + 0.25 * self.funG(x2) * (x2 - x1 + x2 - x3 + x2 - x4),
-                self.paramW + 0.25 * self.funG(x3) * (x3 - x1 + x3 - x2 + x3 - x4),
-                self.paramW + 0.25 * self.funG(x4) * (x4 - x1 + x4 - x2 + x4 - x3)]
+    def getFullSystem(self, phis):
+        rhsPhis = [0,0,0,0]
+        for i in range(4):
+            elem = self.paramW
+            for j in range(4):
+                elem += 0.25 * self.funG(phis[i]-phis[j])
+            rhsPhis[i] = elem
+        return rhsPhis
 
-    def getReducedSystem(self, Y):
-        y1, y2, y3 = Y
-        return [self.funG(y1) * (y1),
-                self.funG(y2) * (y2),
-                self.funG(y3) * (y3)]
+    def getReducedSystem(self, gammas):
+        phis = [0] + gammas
+        rhsPhi = self.getFullSystem(phis)
+        rhsGamma = [0,0,0,0]
+        for i in range(4):
+            rhsGamma[i] = rhsPhi[i]-rhsPhi[1]
+        return rhsGamma[1:]
 
-    def getRestriction(self):
-        return None
+    def getRestriction(self,psi):
+        gammas = [0] + psi
+        rhsPsi = self.getReducedSystem(gammas)
+        return rhsPsi[1:]
