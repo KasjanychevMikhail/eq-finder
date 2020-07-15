@@ -14,7 +14,7 @@ jobs:
           python-version: 3.8
     - name: Update pip
       run: |
-        python -m pip
+        pip install -U pip
             
     - name: Install Scipy
       run: |
