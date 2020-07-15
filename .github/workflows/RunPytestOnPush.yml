@@ -15,12 +15,19 @@ jobs:
     - name: Update pip
       run: |
         python -m pip
-    - name: Install Matplotlib
-      run: |
-        pip install matplotlib
+            
     - name: Install Scipy
       run: |
-        pip install scipy        
+        pip install scipy
+        
+    - name: Install Sklearn
+      run: |
+        pip install sklearn  
+              
+    - name: Install Numpy
+      run: |
+        pip install numpy
+        
     - name: Install PyTest
       run: |
         pip install pytest
