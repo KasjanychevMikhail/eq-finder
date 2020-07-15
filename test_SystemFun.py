@@ -184,3 +184,7 @@ class TestCreateDistMatrix:
     def testTESTGitAct(self):
         matrix = [[0,1.1,1.1,2],[1.1,0,0,1],[1.1,0,0,1],[2,1.1,1.1,0]]
         assert  sf.work(matrix,1.0) == [0,1,1,1]
+
+    def testTESTGitAct2(self):
+        matrix = [[0, 1.1, 1.1, 2], [1.1, 0, 0, 1], [1.1, 0, 0, 1], [2, 1.1, 1.1, 0]]
+        assert sf.work(matrix, 1.0) == [0, 1, 1, 1]
