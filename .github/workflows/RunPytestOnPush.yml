@@ -24,6 +24,10 @@ jobs:
       run: |
         pip install sklearn  
               
+    - name: Install Numpy
+      run: |
+        pip install numpy
+        
     - name: Install PyTest
       run: |
         pip install pytest
