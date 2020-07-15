@@ -31,11 +31,7 @@ jobs:
     - name: Install matplotlib
       run: |
         pip install matplotlib
-           
-    - name: Install collections
-      run: |
-        pip install collections
-        
+                
     - name: Install PyTest
       run: |
         pip install pytest
