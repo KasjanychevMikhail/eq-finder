@@ -117,7 +117,6 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         sh = sf.ShgoEqFinder(300, 30)
         res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
-        print(res)
         data = res[:, 2:5]
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
