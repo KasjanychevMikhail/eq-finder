@@ -111,6 +111,17 @@ class TestFindEquilibria:
         data= res[:,2:5]
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
+
+    def test_FindEqInSinglePoint3(self):
+        ud = [-1.5, 0.5, 0, 0]
+        rhsCurrent = lambda X: self.rhs(X, ud)
+        sh = sf.ShgoEqFinder(300, 30)
+        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
+        print(res)
+        data = res[:, 2:5]
+        describe = sf.describePortrType(data.tolist())
+        assert describe == self.analyticFind(ud)
+
     def test_FindEq2InSinglePoint(self):
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)

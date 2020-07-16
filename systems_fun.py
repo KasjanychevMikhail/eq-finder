@@ -1,11 +1,12 @@
 import os
 import subprocess
-from collections import namedtuple
+import scipy
 import matplotlib.pyplot as plt
+import numpy as np
+
+from collections import namedtuple
 from scipy import optimize
 from numpy import linalg as LA
-import numpy as np
-import scipy
 from scipy.sparse.csgraph import connected_components
 from sklearn.cluster import AgglomerativeClustering
 
