@@ -2,6 +2,7 @@ import systems_fun as sf
 import numpy as np
 import pytest
 from sklearn.cluster import AgglomerativeClustering
+import scipy
 
 class TestDescribeEqType:
     def test_saddle(self):
@@ -118,6 +119,9 @@ class TestFindEquilibria:
         sh = sf.ShgoEqFinder(300, 30)
         res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
         data = res[:, 2:5]
+        print(np.__version__)
+        print(scipy.__version__)
+
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
 
