@@ -71,7 +71,7 @@ def describePortrType(dataEqSignatures):
             eqTypes[(nU, nS)] += 1
         else:
             nonRough += 1
-    # nSinksn, nSources, nSaddles,  nNonRough
+    # nSinksn, nSaddles, nSources,  nNonRough
     portrType = tuple([eqTypes[(i, phSpaceDim-i)] for i in range(phSpaceDim+1)] + [nonRough])
     return portrType
 

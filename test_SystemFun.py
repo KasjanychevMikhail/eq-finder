@@ -102,16 +102,8 @@ class TestFindEquilibria:
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
 
-    def test_FindEqInSinglePoint2(self):
-        ud = [-1.5,0.5,0,0]
-        rhsCurrent = lambda X: self.rhs(X, ud)
-        sh = sf.ShgoEqFinder(300, 30)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
-        data= res[:,2:5]
-        describe = sf.describePortrType(data.tolist())
-        assert describe == self.analyticFind(ud)
 
-    def test_FindEqInSinglePoint3(self):
+    def test_FindEqInSinglePoint2(self):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         sh = sf.ShgoEqFinder(1000, 100)
@@ -180,8 +172,3 @@ class TestCreateDistMatrix:
     def testWORK(self):
         matrix = [[0,1.1,1.1,2],[1.1,0,0,1],[1.1,0,0,1],[2,1.1,1.1,0]]
         assert  sf.work(matrix,1.0) == [0,1,1,1]
-
-    def testTESTGitAct2(self):
-        const = 2
-        matrix = [[0, 1.1, 1.1, 2], [1.1, 0, 0, 1], [1.1, 0, 0, 1], [2, 1.1, 1.1, 0]]
-        assert sf.work(matrix, 1.0) == [0, 1, 1, 1]
