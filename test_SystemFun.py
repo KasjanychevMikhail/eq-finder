@@ -180,6 +180,6 @@ class TestCreateDistMatrix:
         assert sf.createDistMatrix(a).tolist() == [[0, 0], [0, 0]]
 
     def testWORK(self):
-        t = 0
+        t = 2
         matrix = [[0,1.1,1.1,2],[1.1,0,0,1],[1.1,0,0,1],[2,1.1,1.1,0]]
         assert  sf.work(matrix,1.0) == [0,1,1,1]
