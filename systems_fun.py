@@ -10,9 +10,8 @@ from numpy import linalg as LA
 from scipy.sparse.csgraph import connected_components
 from sklearn.cluster import AgglomerativeClustering
 
-MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'valueFirstParam',
-                                             'valueSecondParam', 'constParam', 'bounds', 'optMethodParams',
-                                             'bordersEq'])
+MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'bounds', 'params',
+                                             'bordersEq','optMethod', 'optMethodParams'])
 
 
 class EnvironmentParameters:
@@ -77,27 +76,76 @@ def describePortrType(dataEqSignatures):
     return portrType
 
 class ShgoEqFinder:
-    def __init__(self, nSamples, nIters):
+    def __init__(self, nSamples, nIters, eps):
         self.nSamples = nSamples
         self.nIters = nIters
+        self.eps = eps
     def __call__(self, rhs, rhsSq, rhsJac, boundaries, borders):
         optResult = scipy.optimize.shgo(rhsSq, boundaries, n=self.nSamples, iters=self.nIters, sampling_method='sobol');
         allEquilibria = [x for x, val in zip(optResult.xl, optResult.funl) if
-                         abs(val) < 1e-15 and inBounds(x, borders)];
+                         abs(val) < self.eps and inBounds(x, borders)];
         return allEquilibria
 
 class NewtonEqFinder:
-    def __init__(self, xGridSize, yGridSize):
+    def __init__(self, xGridSize, yGridSize, eps):
         self.xGridSize = xGridSize
         self.yGridSize = yGridSize
+        self.eps = eps
     def __call__(self, rhs, rhsSq, rhsJac, boundaries, borders):
         Result = []
         for i, x in enumerate(np.linspace(boundaries[0][0], boundaries[0][1], self.xGridSize)):
             for j, y in enumerate(np.linspace(boundaries[1][0], boundaries[1][1], self.yGridSize)):
                 Result.append(optimize.root(rhs, [x, y], method='broyden1', jac=rhsJac).x)
-        allEquilibria = [x for x in Result if abs(rhsSq(x)) < 1e-15 and inBounds(x, borders)];
+        allEquilibria = [x for x in Result if abs(rhsSq(x)) < self.eps and inBounds(x, borders)];
         return allEquilibria
 
+
+class NewtonUpEqFinder:
+    def __init__(self, xGridSize, yGridSize, eps):
+        self.xGridSize = xGridSize
+        self.yGridSize = yGridSize
+        self.eps = eps
+    def test(self, rhs,x,y,step):
+        res = 0
+        if rhs((x, y))[0] * rhs((x, y + step))[0] < 0:
+            res = 1
+        elif rhs((x, y + step))[0] * rhs((x + step, y + step))[0] < 0:
+            res = 1
+        elif rhs((x + step, y + step))[0] * rhs((x + step, y))[0] < 0:
+            res = 1
+        elif rhs((x + step, y))[0] * rhs((x, y))[0] < 0:
+            res = 1
+        if res:
+            if rhs((x, y))[1] * rhs((x, y + step))[1] < 0:
+                res = 1
+            elif rhs((x, y + step))[1] * rhs((x + step, y + step))[1] < 0:
+                res = 1
+            elif rhs((x + step, y + step))[1] * rhs((x + step, y))[1] < 0:
+                res = 1
+            elif rhs((x + step, y))[1] * rhs((x, y))[1] < 0:
+                res = 1
+        return res
+    def __call__(self, rhs, rhsSq, rhsJac, boundaries, borders):
+        rectangles = np.zeros((self.xGridSize - 1, self.yGridSize - 1))
+
+        x = boundaries[0][0]
+        step =  (boundaries[0][1]-boundaries[0][0])/ (self.yGridSize - 1)
+        for i in range (self.xGridSize - 1):
+            y = boundaries[1][0]
+            for j in range (self.yGridSize - 1):
+                if self.test(rhs,x,y,step):
+                        rectangles[self.xGridSize - i - 2][self.yGridSize - j - 2] = 1
+                y += step
+            x += step
+
+        Result = []
+        for i in range (self.xGridSize):
+            for j in range (self.yGridSize):
+                if rectangles[self.xGridSize - i - 2][self.yGridSize - j - 2]:
+                    Result.append(optimize.root(rhs, [boundaries[0][0] + i * step, boundaries[1][0] + j * step],
+                                        method='broyden1', jac=rhsJac).x)
+        allEquilibria = [x for x in Result if abs(rhsSq(x)) < self.eps and inBounds(x, borders)]
+        return allEquilibria
 def createEqList (allEquilibria, rhsJac, ud):
     allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
     result = np.zeros([len(allEquilibria), 9])

@@ -97,7 +97,7 @@ class TestFindEquilibria:
     def test_FindEqInSinglePoint(self):
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        sh = sf.ShgoEqFinder(1000, 100)
+        sh = sf.ShgoEqFinder(1000, 100,1e-15)
         res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
         data= res[:,2:5]
         describe = sf.describePortrType(data.tolist())
@@ -107,16 +107,34 @@ class TestFindEquilibria:
     def test_FindEqInSinglePoint2(self):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        sh = sf.ShgoEqFinder(1000, 100)
+        sh = sf.ShgoEqFinder(1000, 100,1e-15)
         res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
         data= res[:,2:5]
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
 
-    def test_FindEq2InSinglePoint(self):
+    def test_FindEqInSinglePoint3(self):
+        ud = [-1.5,0.5,0,0]
+        rhsCurrent = lambda X: self.rhs(X, ud)
+        sh = sf.ShgoEqFinder(300, 30,4e-14)
+        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
+        X = res[:, 0:2]
+        if list(X) and len(list(X)) != 1:
+            clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
+                                                 distance_threshold=(1e-5))
+            clustering.fit(X)
+            data = res[:, 2:5]
+            trueStr = sf.mergePoints(clustering.labels_, data)
+            data = res[list(trueStr), 2:5]
+        else:
+            data = res[:, 2:5]
+        describe = sf.describePortrType(data.tolist())
+        assert describe == self.analyticFind(ud)
+
+    def test_FindEq2InSinglePointNewton(self):
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        mn = sf.NewtonEqFinder(21, 21)
+        mn = sf.NewtonEqFinder(21, 21,1e-15)
         res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
         X = res[:, 0:2]
         if list(X)and len(list(X))!= 1:
@@ -131,6 +149,90 @@ class TestFindEquilibria:
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
 
+    def test_FindEqInSinglePointNewton2(self):
+        ud = [1.5,0.5,0,0]
+        rhsCurrent = lambda X: self.rhs(X, ud)
+        mn = sf.NewtonEqFinder(71, 71,1e-18)
+        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        X = res[:, 0:2]
+        if list(X)and len(list(X))!= 1:
+            clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
+                                                 distance_threshold=(1e-5))
+            clustering.fit(X)
+            data = res[:, 2:5]
+            trueStr = sf.mergePoints(clustering.labels_, data)
+            data= res[list(trueStr),2:5]
+        else:
+            data = res[:, 2:5]
+        describe = sf.describePortrType(data.tolist())
+        assert describe == self.analyticFind(ud)
+
+    def test_FindEqInSinglePointNewton3(self):
+        ud = [1.5,0.5,0,0]
+        rhsCurrent = lambda X: self.rhs(X, ud)
+        mn = sf.NewtonEqFinder(71, 71,1e-18)
+        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        X = res[:, 0:2]
+        if list(X)and len(list(X))!= 1:
+            clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
+                                                 distance_threshold=(1e-5))
+            clustering.fit(X)
+            data = res[:, 2:5]
+            trueStr = sf.mergePoints(clustering.labels_, data)
+            data= res[list(trueStr),2:5]
+        else:
+            data = res[:, 2:5]
+        describe = sf.describePortrType(data.tolist())
+        assert describe == self.analyticFind(ud)
+
+    def test_FindEqInSinglePointNewtonUp(self):
+        ud = [-0.5,0,0,0]
+        rhsCurrent = lambda X: self.rhs(X, ud)
+        mn = sf.NewtonUpEqFinder(81, 81,1e-20)
+        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        data = res[:, 2:5]
+        describe = sf.describePortrType(data.tolist())
+        assert describe == self.analyticFind(ud)
+
+    def test_FindEqInSinglePointNewtonUp2(self):
+        ud = [1.5,0.5,0,0]
+        rhsCurrent = lambda X: self.rhs(X, ud)
+        mn = sf.NewtonUpEqFinder(71, 71,1e-16)
+        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        X = res[:, 0:2]
+        if list(X) and len(list(X)) != 1:
+            clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
+                                                 distance_threshold=(1e-5))
+            clustering.fit(X)
+            data = res[:, 2:5]
+            trueStr = sf.mergePoints(clustering.labels_, data)
+            data = res[list(trueStr), 2:5]
+            print(res[list(trueStr)])
+        else:
+            data = res[:, 2:5]
+
+        describe = sf.describePortrType(data.tolist())
+        assert describe == self.analyticFind(ud)
+
+    def test_FindEqInSinglePointNewtonUp3(self):
+        ud = [-1.5,0.5,0,0]
+        rhsCurrent = lambda X: self.rhs(X, ud)
+        mn = sf.NewtonUpEqFinder(101, 101,8e-17)
+        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        X = res[:, 0:2]
+        if list(X) and len(list(X)) != 1:
+            clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
+                                                 distance_threshold=(1e-5))
+            clustering.fit(X)
+            data = res[:, 2:5]
+            trueStr = sf.mergePoints(clustering.labels_, data)
+            data = res[list(trueStr), 2:5]
+            print(res[list(trueStr)])
+        else:
+            data = res[:, 2:5]
+
+        describe = sf.describePortrType(data.tolist())
+        assert describe == self.analyticFind(ud)
 
 class TestCreateDistMatrix:
 
