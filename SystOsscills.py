@@ -20,6 +20,7 @@ class FourBiharmonicPhaseOscillators:
         return rhsPhis
 
     def getReducedSystem(self, gammas):
+        gammas = list(gammas)
         phis = [0] + gammas
         rhsPhi = self.getFullSystem(phis)
         rhsGamma = [0,0,0,0]
@@ -28,6 +29,7 @@ class FourBiharmonicPhaseOscillators:
         return rhsGamma[1:]
 
     def getRestriction(self,psi):
+        psi = list(psi)
         gammas = [0] + psi
         rhsPsi = self.getReducedSystem(gammas)
         return rhsPsi[1:]
