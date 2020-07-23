@@ -10,7 +10,7 @@ from numpy import linalg as LA
 from scipy.sparse.csgraph import connected_components
 from sklearn.cluster import AgglomerativeClustering
 
-MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'bounds', 'params',
+MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'bounds',
                                              'bordersEq','optMethod', 'optMethodParams'])
 
 
