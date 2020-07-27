@@ -10,8 +10,8 @@ from numpy import linalg as LA
 from scipy.sparse.csgraph import connected_components
 from sklearn.cluster import AgglomerativeClustering
 
-MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'bounds',
-                                             'bordersEq','optMethod', 'optMethodParams'])
+MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'param', 'bounds',
+                                             'borders','optMethod', 'optMethodParams'])
 
 
 class EnvironmentParameters:
@@ -100,7 +100,7 @@ class NewtonEqFinder:
         return allEquilibria
 
 
-class NewtonUpEqFinder:
+class NewtonEqFinderUp:
     def __init__(self, xGridSize, yGridSize, eps):
         self.xGridSize = xGridSize
         self.yGridSize = yGridSize
@@ -146,26 +146,32 @@ class NewtonUpEqFinder:
                                         method='broyden1', jac=rhsJac).x)
         allEquilibria = [x for x in Result if abs(rhsSq(x)) < self.eps and inBounds(x, borders)]
         return allEquilibria
-def createEqList (allEquilibria, rhsJac, ud):
+def createEqList (allEquilibria, rhsJac):
     allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
     result = np.zeros([len(allEquilibria), 9])
     for k, eqCoords in enumerate(allEquilibria):
-        eqJacMatrix = rhsJac(eqCoords, ud)
+        eqJacMatrix = rhsJac(eqCoords)
         eigvals, _ = LA.eig(eqJacMatrix)
         eqTypeData = describeEqType(eigvals)
         eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
         result[k] = list(eqCoords) + list(eqTypeData) + list(eigvals)
     return result
 
-def findEquilibria(rhs, rhsJac, boundaries, ud, borders, method):
+def findEquilibria(rhs, rhsJac, boundaries, borders, method, methodParams):
     def rhsSq(x):
         xArr = np.array(x)
         vec = rhs(xArr)
-        return np.dot(vec, vec)
+        return np.dot(vec, vec)   
+    
+    methods = {'ShgoEqFinder': ShgoEqFinder, 'NewtonEqFinder':NewtonEqFinder,'NewtonEqFinderUp': NewtonEqFinderUp}
 
-    allEquilibria = method(rhs, rhsSq, rhsJac, boundaries, borders)
+    method_name = method
+    
+    met = methods[method_name](methodParams[0],methodParams[1],methodParams[2])   
+    
+    allEquilibria = met(rhs, rhsSq, rhsJac, boundaries, borders)
 
-    return createEqList(allEquilibria,rhsJac, ud)
+    return createEqList(allEquilibria,rhsJac)
 
 
 def inBounds(X, boundaries):
@@ -177,7 +183,7 @@ def inBounds(X, boundaries):
 
 
 def createFileTopologStructPhasePort(envParams, mapParams, i, j):
-    ud = [mapParams.valueFirstParam, mapParams.valueSecondParam] + mapParams.constParam;
+    ud = mapParams.param    
     headerStr = ('gamma = {par[0]}\n' +
                  'd = {par[1]}\n' +
                  'X  Y  nS  nC  nU  isSComplex  isUComplex  eigval1  eigval2\n' +
@@ -191,8 +197,8 @@ def createFileTopologStructPhasePort(envParams, mapParams, i, j):
                '%2u',
                '%+18.15f',
                '%+18.15f', ]
-    rhsCurrent = lambda X: mapParams.rhs(X, ud)
-    sol = findEquilibria(rhsCurrent, mapParams.rhsJac, mapParams.bounds, ud, mapParams.bordersEq, mapParams.method,
+    
+    sol = findEquilibria( mapParams.rhs, mapParams.rhsJac,  mapParams.bounds, mapParams.borders, mapParams.optMethod,
                          mapParams.optMethodParams)
     X = sol[:, 0:2]
     if list(X) and len(list(X)) != 1:

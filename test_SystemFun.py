@@ -97,8 +97,8 @@ class TestFindEquilibria:
     def test_FindEqInSinglePoint(self):
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        sh = sf.ShgoEqFinder(1000, 100,1e-15)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders,'ShgoEqFinder',(1000, 100,1e-15))
         data= res[:,2:5]
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
@@ -107,8 +107,8 @@ class TestFindEquilibria:
     def test_FindEqInSinglePoint2(self):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        sh = sf.ShgoEqFinder(1000, 100,1e-15)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders, 'ShgoEqFinder',(1000, 100,1e-15))
         data= res[:,2:5]
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
@@ -116,8 +116,8 @@ class TestFindEquilibria:
     def test_FindEqInSinglePoint3(self):
         ud = [-1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        sh = sf.ShgoEqFinder(300, 30,4e-14)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, sh)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders,'ShgoEqFinder',(300, 30,4e-14))
         X = res[:, 0:2]
         if list(X) and len(list(X)) != 1:
             clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
@@ -134,8 +134,8 @@ class TestFindEquilibria:
     def test_FindEq2InSinglePointNewton(self):
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        mn = sf.NewtonEqFinder(21, 21,1e-15)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders, 'NewtonEqFinder',(21, 21,1e-15))
         X = res[:, 0:2]
         if list(X)and len(list(X))!= 1:
             clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
@@ -152,8 +152,8 @@ class TestFindEquilibria:
     def test_FindEqInSinglePointNewton2(self):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        mn = sf.NewtonEqFinder(71, 71,1e-18)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders, 'NewtonEqFinder',(71, 71,1e-18))
         X = res[:, 0:2]
         if list(X)and len(list(X))!= 1:
             clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
@@ -170,8 +170,8 @@ class TestFindEquilibria:
     def test_FindEqInSinglePointNewton3(self):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        mn = sf.NewtonEqFinder(71, 71,1e-18)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders, 'NewtonEqFinder',(71, 71,1e-18))
         X = res[:, 0:2]
         if list(X)and len(list(X))!= 1:
             clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
@@ -188,8 +188,8 @@ class TestFindEquilibria:
     def test_FindEqInSinglePointNewtonUp(self):
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        mn = sf.NewtonUpEqFinder(81, 81,1e-20)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders, 'NewtonEqFinderUp',(81, 81,1e-20))
         data = res[:, 2:5]
         describe = sf.describePortrType(data.tolist())
         assert describe == self.analyticFind(ud)
@@ -197,8 +197,8 @@ class TestFindEquilibria:
     def test_FindEqInSinglePointNewtonUp2(self):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        mn = sf.NewtonUpEqFinder(71, 71,1e-16)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders, 'NewtonEqFinderUp',(71, 71,1e-16))
         X = res[:, 0:2]
         if list(X) and len(list(X)) != 1:
             clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
@@ -217,8 +217,8 @@ class TestFindEquilibria:
     def test_FindEqInSinglePointNewtonUp3(self):
         ud = [-1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
-        mn = sf.NewtonUpEqFinder(101, 101,8e-17)
-        res = sf.findEquilibria(rhsCurrent, self.rhsJac, self.bounds, ud, self.borders, mn)
+        rhsJacCurrent = lambda X: self.rhsJac(X, ud)
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds,  self.borders,  'NewtonEqFinderUp',(101, 101,8e-17))
         X = res[:, 0:2]
         if list(X) and len(list(X)) != 1:
             clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
