@@ -34,20 +34,20 @@ class FourBiharmonicPhaseOscillators:
         rhsPsi = self.getReducedSystem(gammas)
         return rhsPsi[1:]
     
-    def JacComp1(self, x,y):
+    def DiagComponentJac2d(self, x,y):
         
         
         return (2*(-np.cos(x + self.paramA) + 2*self.paramR * np.cos(2 * x + self.paramB)) +
                 (-np.cos(x-y + self.paramA) + 2*self.paramR * np.cos(2 * (x-y) + self.paramB)) -
                 (np.cos((-x) + self.paramA) - 2*self.paramR * np.cos(2 * (-x) + self.paramB))
                )
-    def JacComp2(self, x,y):
+    def NotDiagComponentJac(self, x,y):
         
         return ((np.cos(x-y + self.paramA) - 2*self.paramR * np.cos(2 * (x-y) + self.paramB)) -
                 (np.cos((-y) + self.paramA) - 2*self.paramR * np.cos(2 * (-y) + self.paramB))
                )
     
-    def JacComp3(self, x,y,z):
+    def DiagComponentJac3d(self, x,y,z):
         
         
         return (
@@ -62,13 +62,14 @@ class FourBiharmonicPhaseOscillators:
         
     def getRestrictionJac(self,X):  
         x,y=X       
-        return np.array([[self.JacComp1(x,y), self.JacComp2(x,y)],[ self.JacComp2(y,x),self.JacComp1(y,x)]])
+        return np.array([[self.DiagComponentJac2d(x,y), self.NotDiagComponentJac(x,y)],
+                         [ self.NotDiagComponentJac(y,x),self.DiagComponentJac2d(y,x)]])
     
     def getReducedSystemJac(self,X):  
         x,y,z=X       
-        return np.array([[self.JacComp3(x,y,z), self.JacComp2(x,y),self.JacComp2(x,z)],
-                         [ self.JacComp2(y,x),self.JacComp3(y,x,z),self.JacComp2(y,z)],
-                         [ self.JacComp2(z,x),self.JacComp2(z,y),self.JacComp3(z,x,y)]
+        return np.array([[self.DiagComponentJac3d(x,y,z), self.NotDiagComponentJac(x,y),self.NotDiagComponentJac(x,z)],
+                         [ self.NotDiagComponentJac(y,x),self.DiagComponentJac3d(y,x,z),self.NotDiagComponentJac(y,z)],
+                         [ self.NotDiagComponentJac(z,x),self.NotDiagComponentJac(z,y),self.DiagComponentJac3d(z,x,y)]
                         ])
     
     def getParams(self):          
