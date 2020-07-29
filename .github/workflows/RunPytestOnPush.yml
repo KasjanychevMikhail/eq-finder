@@ -16,7 +16,7 @@ jobs:
         
     - name: Update pip
       run: |
-        pip install -m pip install --user --upgrade pip
+        python -m pip install --user --upgrade pip
             
     - name: Install Scipy
       run: |
