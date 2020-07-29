@@ -13,13 +13,10 @@ jobs:
       uses: actions/setup-python@v1
       with:
           python-version: 3.8
-    - name: install --user
-      run: |
-        pip install --user Alexey
-    
+        
     - name: Update pip
       run: |
-        pip install -U pip
+        pip install -m pip install --user --upgrade pip
             
     - name: Install Scipy
       run: |
