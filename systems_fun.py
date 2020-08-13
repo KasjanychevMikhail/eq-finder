@@ -148,12 +148,13 @@ class NewtonEqFinderUp:
         return allEquilibria
 def createEqList (allEquilibria, rhsJac):
     allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
-    result = np.zeros([len(allEquilibria), 9])
+    result = np.zeros([len(allEquilibria), 11])
     for k, eqCoords in enumerate(allEquilibria):
         eqJacMatrix = rhsJac(eqCoords)
         eigvals, _ = LA.eig(eqJacMatrix)
         eqTypeData = describeEqType(eigvals)
         eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
+        eigvals = [eigvals[0].real, eigvals[0].imag, eigvals[1].real, eigvals[1].imag]
         result[k] = list(eqCoords) + list(eqTypeData) + list(eigvals)
     return result
 
@@ -186,8 +187,8 @@ def createFileTopologStructPhasePort(envParams, mapParams, i, j):
     ud = mapParams.param    
     headerStr = ('gamma = {par[0]}\n' +
                  'd = {par[1]}\n' +
-                 'X  Y  nS  nC  nU  isSComplex  isUComplex  eigval1  eigval2\n' +
-                 '0  1  2   3   4   5           6           7        8').format(par=ud)
+                 'X  Y  nS  nC  nU  isSComplex  isUComplex  Re(eigval1)  Im(eigval1)  Re(eigval2)  Im(eigval2)\n' +
+                 '0  1  2   3   4   5           6           7            8            9            10').format(par=ud)
     fmtList = ['%+18.15f',
                '%+18.15f',
                '%2u',
@@ -195,6 +196,8 @@ def createFileTopologStructPhasePort(envParams, mapParams, i, j):
                '%2u',
                '%2u',
                '%2u',
+               '%+18.15f',
+               '%+18.15f',
                '%+18.15f',
                '%+18.15f', ]
     
