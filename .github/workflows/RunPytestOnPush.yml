@@ -4,23 +4,36 @@ on: [push]
 
 jobs:
   pytest:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
-    steps:
+    steps:   
+      
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
           python-version: 3.8
+        
     - name: Update pip
       run: |
-        python -m pip
-    - name: Install Matplotlib
-      run: |
-        pip install matplotlib
+        python -m pip install --user --upgrade pip
+            
     - name: Install Scipy
       run: |
-        pip install scipy        
+        pip install scipy
+        
+    - name: Install Sklearn
+      run: |
+        pip install sklearn  
+              
+    - name: Install Numpy
+      run: |
+        pip install numpy
+        
+    - name: Install matplotlib
+      run: |
+        pip install matplotlib
+                
     - name: Install PyTest
       run: |
         pip install pytest

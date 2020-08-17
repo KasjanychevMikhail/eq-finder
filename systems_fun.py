@@ -1,17 +1,17 @@
-
 import os
 import subprocess
-from collections import namedtuple
+import scipy
 import matplotlib.pyplot as plt
-import scipy.optimize
-from numpy import linalg as LA
 import numpy as np
 
+from collections import namedtuple
+from scipy import optimize
+from numpy import linalg as LA
 from scipy.sparse.csgraph import connected_components
+from sklearn.cluster import AgglomerativeClustering
 
-MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'valueFirstParam',
-                                             'valueSecondParam', 'constParam', 'bounds', 'optMethodParams',
-                                             'bordersEq'])
+MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'param', 'bounds',
+                                             'borders','optMethod', 'optMethodParams'])
 
 
 class EnvironmentParameters:
@@ -35,20 +35,15 @@ class EnvironmentParameters:
     def fullExecName(self):
         return os.path.join(self.pathToOutputDirectory, self.outputExecutableName)
 
-    # prepare environment function: copy from trc_utils and use https://stackoverflow.com/a/12526809
-
 
 def prepareEnvironment(envParams):
     """
     Clears output directory and copies executable
     """
-    # delete all files in directory
+
     assert isinstance(envParams, EnvironmentParameters)
     clearOutputCommand = 'rm {env.clearAllInOutputDirectory}'.format(env=envParams)
     subprocess.call(clearOutputCommand, shell=True)
-    # compile code
-    # compileExecCommand = 'g++ {env.pathToSource} -o {env.fullExecName} --std=c++11'.format(env=envParams)
-    # subprocess.call(compileExecCommand, shell=True)
 
 
 def isComplex(Z):
@@ -67,44 +62,117 @@ def describeEqType(eigvals):
 
 
 def describePortrType(dataEqSignatures):
-    nSaddles = len([eq for eq in dataEqSignatures if eq == [1, 0, 1]])
-    nSources = len([eq for eq in dataEqSignatures if eq== [0, 0, 2]])
-    nSinks = len([eq for eq in dataEqSignatures if eq==[2, 0, 0]])
-    nNonRough = len([eq for eq in dataEqSignatures if
-                     eq==[1, 1, 0] or eq==[0, 1, 1] or eq==[0, 2, 0]])
-    return (nSaddles, nSources, nSinks, nNonRough)
+    phSpaceDim = int(sum(dataEqSignatures[0]))
+    eqTypes = {(i, phSpaceDim-i):0 for i in range(phSpaceDim+1)}
+    nonRough = 0
+    for eqSign in dataEqSignatures:
+        nS, nC, nU = eqSign
+        if nC == 0:
+            eqTypes[(nU, nS)] += 1
+        else:
+            nonRough += 1
+    # nSinksn, nSaddles, nSources,  nNonRough
+    portrType = tuple([eqTypes[(i, phSpaceDim-i)] for i in range(phSpaceDim+1)] + [nonRough])
+    return portrType
+
+class ShgoEqFinder:
+    def __init__(self, nSamples, nIters, eps):
+        self.nSamples = nSamples
+        self.nIters = nIters
+        self.eps = eps
+    def __call__(self, rhs, rhsSq, rhsJac, boundaries, borders):
+        optResult = scipy.optimize.shgo(rhsSq, boundaries, n=self.nSamples, iters=self.nIters, sampling_method='sobol');
+        allEquilibria = [x for x, val in zip(optResult.xl, optResult.funl) if
+                         abs(val) < self.eps and inBounds(x, borders)];
+        return allEquilibria
+
+class NewtonEqFinder:
+    def __init__(self, xGridSize, yGridSize, eps):
+        self.xGridSize = xGridSize
+        self.yGridSize = yGridSize
+        self.eps = eps
+    def __call__(self, rhs, rhsSq, rhsJac, boundaries, borders):
+        Result = []
+        for i, x in enumerate(np.linspace(boundaries[0][0], boundaries[0][1], self.xGridSize)):
+            for j, y in enumerate(np.linspace(boundaries[1][0], boundaries[1][1], self.yGridSize)):
+                Result.append(optimize.root(rhs, [x, y], method='broyden1', jac=rhsJac).x)
+        allEquilibria = [x for x in Result if abs(rhsSq(x)) < self.eps and inBounds(x, borders)];
+        return allEquilibria
 
 
-def findEquilibria(rhs, rhsJac, boundaries, optMethodParams, ud, borders):
-    nSamples, nIters = optMethodParams
+class NewtonEqFinderUp:
+    def __init__(self, xGridSize, yGridSize, eps):
+        self.xGridSize = xGridSize
+        self.yGridSize = yGridSize
+        self.eps = eps
+    def test(self, rhs,x,y,step):
+        res = 0
+        if rhs((x, y))[0] * rhs((x, y + step))[0] < 0:
+            res = 1
+        elif rhs((x, y + step))[0] * rhs((x + step, y + step))[0] < 0:
+            res = 1
+        elif rhs((x + step, y + step))[0] * rhs((x + step, y))[0] < 0:
+            res = 1
+        elif rhs((x + step, y))[0] * rhs((x, y))[0] < 0:
+            res = 1
+        if res:
+            if rhs((x, y))[1] * rhs((x, y + step))[1] < 0:
+                res = 1
+            elif rhs((x, y + step))[1] * rhs((x + step, y + step))[1] < 0:
+                res = 1
+            elif rhs((x + step, y + step))[1] * rhs((x + step, y))[1] < 0:
+                res = 1
+            elif rhs((x + step, y))[1] * rhs((x, y))[1] < 0:
+                res = 1
+        return res
+    def __call__(self, rhs, rhsSq, rhsJac, boundaries, borders):
+        rectangles = np.zeros((self.xGridSize - 1, self.yGridSize - 1))
 
-    def rhsSq(x):
-        xArr = np.array(x)
-        vec = rhs(xArr)
-        return np.dot(vec, vec)
+        x = boundaries[0][0]
+        step =  (boundaries[0][1]-boundaries[0][0])/ (self.yGridSize - 1)
+        for i in range (self.xGridSize - 1):
+            y = boundaries[1][0]
+            for j in range (self.yGridSize - 1):
+                if self.test(rhs,x,y,step):
+                        rectangles[self.xGridSize - i - 2][self.yGridSize - j - 2] = 1
+                y += step
+            x += step
 
-    optResult = scipy.optimize.shgo(rhsSq, boundaries, n=nSamples, iters=nIters, sampling_method='sobol');
-    allEquilibria = [x for x, val in zip(optResult.xl, optResult.funl) if abs(val) < 1e-15 and inBounds(x, borders)];
+        Result = []
+        for i in range (self.xGridSize):
+            for j in range (self.yGridSize):
+                if rectangles[self.xGridSize - i - 2][self.yGridSize - j - 2]:
+                    Result.append(optimize.root(rhs, [boundaries[0][0] + i * step, boundaries[1][0] + j * step],
+                                        method='broyden1', jac=rhsJac).x)
+        allEquilibria = [x for x in Result if abs(rhsSq(x)) < self.eps and inBounds(x, borders)]
+        return allEquilibria
+def createEqList (allEquilibria, rhsJac):
     allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
-    result = np.zeros([len(allEquilibria), 9])
+    result = np.zeros([len(allEquilibria), 11])
     for k, eqCoords in enumerate(allEquilibria):
-        eqJacMatrix = rhsJac(eqCoords, ud)
+        eqJacMatrix = rhsJac(eqCoords)
         eigvals, _ = LA.eig(eqJacMatrix)
         eqTypeData = describeEqType(eigvals)
         eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
-        # np.append(result,eqCoords)
-        # np.append(result,eqTypeData)
-        # np.append(result,eigvals)
-        result[k, 0] = eqCoords[0]
-        result[k, 1] = eqCoords[1]
-        result[k, 2] = eqTypeData[0]
-        result[k, 3] = eqTypeData[1]
-        result[k, 4] = eqTypeData[2]
-        result[k, 5] = eqTypeData[3]
-        result[k, 6] = eqTypeData[4]
-        result[k, 7] = eigvals[0]
-        result[k, 8] = eigvals[1]
+        eigvals = [eigvals[0].real, eigvals[0].imag, eigvals[1].real, eigvals[1].imag]
+        result[k] = list(eqCoords) + list(eqTypeData) + list(eigvals)
     return result
+
+def findEquilibria(rhs, rhsJac, boundaries, borders, method, methodParams):
+    def rhsSq(x):
+        xArr = np.array(x)
+        vec = rhs(xArr)
+        return np.dot(vec, vec)   
+    
+    methods = {'ShgoEqFinder': ShgoEqFinder, 'NewtonEqFinder':NewtonEqFinder,'NewtonEqFinderUp': NewtonEqFinderUp}
+
+    method_name = method
+    
+    met = methods[method_name](methodParams[0],methodParams[1],methodParams[2])   
+    
+    allEquilibria = met(rhs, rhsSq, rhsJac, boundaries, borders)
+
+    return createEqList(allEquilibria,rhsJac)
 
 
 def inBounds(X, boundaries):
@@ -116,19 +184,37 @@ def inBounds(X, boundaries):
 
 
 def createFileTopologStructPhasePort(envParams, mapParams, i, j):
-    ud = [mapParams.valueFirstParam, mapParams.valueSecondParam] + mapParams.constParam;
+    ud = mapParams.param    
     headerStr = ('gamma = {par[0]}\n' +
                  'd = {par[1]}\n' +
-                 'X  Y  nS  nC  nU  isSComplex  isUComplex  eigval1  eigval2\n' +
-                 '0  1  2   3   4   5           6           7        8').format(par=ud)
-    rhsCurrent = lambda X: mapParams.rhs(X, ud)
-    sol = findEquilibria(rhsCurrent, mapParams.rhsJac, mapParams.bounds, mapParams.optMethodParams, ud,
-                         mapParams.bordersEq)
+                 'X  Y  nS  nC  nU  isSComplex  isUComplex  Re(eigval1)  Im(eigval1)  Re(eigval2)  Im(eigval2)\n' +
+                 '0  1  2   3   4   5           6           7            8            9            10').format(par=ud)
+    fmtList = ['%+18.15f',
+               '%+18.15f',
+               '%2u',
+               '%2u',
+               '%2u',
+               '%2u',
+               '%2u',
+               '%+18.15f',
+               '%+18.15f',
+               '%+18.15f',
+               '%+18.15f', ]
+    
+    sol = findEquilibria( mapParams.rhs, mapParams.rhsJac,  mapParams.bounds, mapParams.borders, mapParams.optMethod,
+                         mapParams.optMethodParams)
+    X = sol[:, 0:2]
+    if list(X) and len(list(X)) != 1:
+        clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
+                                             distance_threshold=(5 * 1e-4))
+        clustering.fit(X)
+        data = sol[:, 2:5]
+        trueStr = mergePoints(clustering.labels_, data)
+        np.savetxt("{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt".format(i, j, env=envParams), sol[list(trueStr), :],
+                   header=headerStr,fmt=fmtList)
+    else:
+        np.savetxt("{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt".format(i, j, env=envParams), sol, header=headerStr,fmt=fmtList)
 
-    connected = work(createDistMatrix(sol[:,0:2]),5*1e-4)
-    data = sol[:, 2:5]
-    trueStr=mergePoints(connected,data)
-    np.savetxt('{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt'.format(i, j, env=envParams), sol[trueStr,:], header=headerStr)
 
 def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arrFirstParam, arrSecondParam):
     N, M = numberValuesParam1, numberValuesParam2
@@ -147,30 +233,32 @@ def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arr
     plt.colorbar()
     plt.savefig('{}{}.pdf'.format(envParams.pathToOutputDirectory, envParams.imageStamp))
 
+
 def createDistMatrix(coordinatesPoins):
-    X = coordinatesPoins[:,0]
-    Y = coordinatesPoins[:,1]
+    X = coordinatesPoins[:, 0]
+    Y = coordinatesPoins[:, 1]
     len(X)
-    Matrix = np.zeros ((len(X),len(X))) * np.NaN
-    for i in range (len(X)):
-        for j in range (len(X)):
-            Matrix[i][j] = np.sqrt((X[i] - X[j])**2 + (Y[i] - Y[j])**2)
+    Matrix = np.zeros((len(X), len(X))) * np.NaN
+    for i in range(len(X)):
+        for j in range(len(X)):
+            Matrix[i][j] = np.sqrt((X[i] - X[j]) ** 2 + (Y[i] - Y[j]) ** 2)
     return Matrix
+
 
 def work(distMatrix, distThreshold):
     ######################
-    currmatrix =np.array(distMatrix)
+    currmatrix = np.array(distMatrix)
     adjMatrix = (currmatrix <= distThreshold) * 1.0
     nComps, labels = connected_components(adjMatrix, directed=False)
-    allData =  [l for l in labels]
+    allData = [l for l in labels]
     ######################
     return allData
 
-def mergePoints(connectedPoints,nSnCnU):
-    arrDiffPoints = {}
-    for i in range (len(connectedPoints)):
-        pointParams = np.append(nSnCnU[i],connectedPoints[i])
-        if tuple(pointParams) not in arrDiffPoints:
-            arrDiffPoints[tuple(pointParams)]= i
-    return arrDiffPoints.values()
 
+def mergePoints(connectedPoints, nSnCnU):
+    arrDiffPoints = {}
+    for i in range(len(connectedPoints)):
+        pointParams = np.append(nSnCnU[i], connectedPoints[i])
+        if tuple(pointParams) not in arrDiffPoints:
+            arrDiffPoints[tuple(pointParams)] = i
+    return arrDiffPoints.values()
