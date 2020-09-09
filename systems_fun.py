@@ -294,7 +294,17 @@ def createListSymmSaddles(coordsSaddle):
         cs.append([cs[i][1] - cs[i][0], cs[i][2] - cs[i][0], 2 * np.pi - cs[i][0]])
     return cs
 
-def heterСheck(result,coords, rhs):
+def minDistToSaddle(lastPointTraj,coordsSaddle)
+    x,y,z = lastPointTraj
+    minDist = 10
+    cs = coordsSaddle
+    for  coordSad in (cs):
+        dist = ((coordSad[0] - x) ** 2 + (coordSad[1] - y) ** 2 + (coordSad[2] - z) ** 2) ** 0.5
+        if (minDist > dist):
+            minDist = dist
+    return minDist
+
+def heterСheck(result,coords, rhs,maxTime):
     coordsSaddle = [0,coords[result[0]][0],coords[result[0]][1]]
     cs = createListSymmSaddles(coordsSaddle)
     x0 = [0] + [coords[result[1]][0], coords[result[1]][1]]
@@ -305,14 +315,8 @@ def heterСheck(result,coords, rhs):
             vec = eigvecs[:, i]
     if (vec[0] < 0):
         vec = multOnConst(vec,-1)
-
     x0 = np.add(np.array(x0), (vec.real) * 1e-5);
     rhs_vec = lambda t, X: rhs.getReducedSystem(X)
-    sol = solve_ivp(rhs_vec, [0, 10000], x0, rtol=1e-11, atol=1e-11, dense_output=True)
+    sol = solve_ivp(rhs_vec, [0, maxTime], x0, rtol=1e-11, atol=1e-11, dense_output=True)
     x, y, z = sol.y
-    minDist = 10
-    for i, coordSad in enumerate(cs):
-        dist = ((cs[i][0] - x[-1]) ** 2 + (cs[i][1] - y[-1]) ** 2 + (cs[i][2] - z[-1]) ** 2) ** 0.5
-        if (minDist > dist):
-            minDist = dist
-    return minDist
+    return minDistToSaddle((x[-1],y[-1],z[-1]),cs)
