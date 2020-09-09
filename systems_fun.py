@@ -7,8 +7,8 @@ import numpy as np
 from collections import namedtuple
 from scipy import optimize
 from numpy import linalg as LA
-from scipy.sparse.csgraph import connected_components
 from sklearn.cluster import AgglomerativeClustering
+from scipy.integrate import solve_ivp
 
 MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'param', 'bounds',
                                              'borders','optMethod', 'optMethodParams'])
@@ -44,6 +44,7 @@ def prepareEnvironment(envParams):
     assert isinstance(envParams, EnvironmentParameters)
     clearOutputCommand = 'rm {env.clearAllInOutputDirectory}'.format(env=envParams)
     subprocess.call(clearOutputCommand, shell=True)
+
 
 
 def isComplex(Z):
@@ -182,6 +183,13 @@ def inBounds(X, boundaries):
     b3, b4 = Yb
     return ((x > b1) and (x < b2) and (y > b3) and (y < b4))
 
+def filterEq(listEquilibria):
+    X = listEquilibria[:, 0:2]
+    clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
+                                         distance_threshold=(5 * 1e-4))
+    clustering.fit(X)
+    data = listEquilibria[:, 2:5]
+    return mergePoints(clustering.labels_, data)
 
 def createFileTopologStructPhasePort(envParams, mapParams, i, j):
     ud = mapParams.param    
@@ -203,13 +211,9 @@ def createFileTopologStructPhasePort(envParams, mapParams, i, j):
     
     sol = findEquilibria( mapParams.rhs, mapParams.rhsJac,  mapParams.bounds, mapParams.borders, mapParams.optMethod,
                          mapParams.optMethodParams)
-    X = sol[:, 0:2]
-    if list(X) and len(list(X)) != 1:
-        clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
-                                             distance_threshold=(5 * 1e-4))
-        clustering.fit(X)
-        data = sol[:, 2:5]
-        trueStr = mergePoints(clustering.labels_, data)
+
+    if list(sol) > 1:
+        trueStr = filterEq(sol)
         np.savetxt("{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt".format(i, j, env=envParams), sol[list(trueStr), :],
                    header=headerStr,fmt=fmtList)
     else:
@@ -237,23 +241,11 @@ def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arr
 def createDistMatrix(coordinatesPoins):
     X = coordinatesPoins[:, 0]
     Y = coordinatesPoins[:, 1]
-    len(X)
     Matrix = np.zeros((len(X), len(X))) * np.NaN
     for i in range(len(X)):
         for j in range(len(X)):
             Matrix[i][j] = np.sqrt((X[i] - X[j]) ** 2 + (Y[i] - Y[j]) ** 2)
     return Matrix
-
-
-def work(distMatrix, distThreshold):
-    ######################
-    currmatrix = np.array(distMatrix)
-    adjMatrix = (currmatrix <= distThreshold) * 1.0
-    nComps, labels = connected_components(adjMatrix, directed=False)
-    allData = [l for l in labels]
-    ######################
-    return allData
-
 
 def mergePoints(connectedPoints, nSnCnU):
     arrDiffPoints = {}
@@ -262,3 +254,65 @@ def mergePoints(connectedPoints, nSnCnU):
         if tuple(pointParams) not in arrDiffPoints:
             arrDiffPoints[tuple(pointParams)] = i
     return arrDiffPoints.values()
+
+def ValP (arrSaddlEig,arrSadFocEig):
+    res = []
+    for i in (arrSaddlEig):
+        for j in (arrSadFocEig):
+            p = (-i[1]/i[2])*(-j[1]/j[2])
+            if (p > 1):
+                res.append([i[0],j[0],p])
+    # res = [[№saddle,№saddle-focus,val P]]
+    return res
+
+def goodConf(coords,data, rhs):
+    sadFocEig=[]
+    saddlesEig=[]
+    for i,X in enumerate(coords):
+        X=list(X)
+        eqJacMatrix = rhs.getReducedSystemJac([0]+X)
+        eigvals, _ = LA.eig(eqJacMatrix)
+        xs,ys =X
+        if(xs<=ys):
+            if (np.array_equal(data[i] ,(2,0,0,1,0)) and np.array_equal(sf.describeEqType(eigvals),(2,0,1,1,0))):
+                eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
+                sadFocEig.append([i,eigvals[-1].real,eigvals[0].real])
+            elif (np.array_equal(data[i] , (1,0,1,0,0)) and np.array_equal(sf.describeEqType(eigvals),(2,0,1,0,0))):
+                eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
+                saddlesEig.append([i,eigvals[-1],eigvals[1]])
+    result = ValP(saddlesEig,sadFocEig)
+    return result
+
+
+def multOnConst(vec,const):
+    for i in range(len(vec)):
+        vec[i]=const*vec[i]
+    return vec
+def createListSymmSaddles(coordsSaddle):
+    cs = coordsSaddle
+    for i in range(3):
+        cs.append([cs[i][1] - cs[i][0], cs[i][2] - cs[i][0], 2 * np.pi - cs[i][0]])
+    return cs
+
+def heterСheck(result,coords, rhs):
+    coordsSaddle = [0,coords[result[0]][0],coords[result[0]][1]]
+    cs = createListSymmSaddles(coordsSaddle)
+    x0 = [0] + [coords[result[1]][0], coords[result[1]][1]]
+    eqJacMatrix = rhs.getReducedSystemJac(x0)
+    eigvals, eigvecs = LA.eig(eqJacMatrix)
+    for i, lam in enumerate(eigvals):
+        if (lam.imag == 0):
+            vec = eigvecs[:, i]
+    if (vec[0] < 0):
+        vec = multOnConst(vec,-1)
+
+    x0 = np.add(np.array(x0), (vec.real) * 1e-5);
+    rhs_vec = lambda t, X: rhs.getReducedSystem(X)
+    sol = solve_ivp(rhs_vec, [0, 10000], x0, rtol=1e-11, atol=1e-11, dense_output=True)
+    x, y, z = sol.y
+    minDist = 10
+    for i, coordSad in enumerate(cs):
+        dist = ((cs[i][0] - x[-1]) ** 2 + (cs[i][1] - y[-1]) ** 2 + (cs[i][2] - z[-1]) ** 2) ** 0.5
+        if (minDist > dist):
+            minDist = dist
+    return minDist
