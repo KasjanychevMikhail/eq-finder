@@ -274,27 +274,23 @@ def goodConf(coords,data, rhs):
         eigvals, _ = LA.eig(eqJacMatrix)
         xs,ys =X
         if(xs<=ys):
-            if (np.array_equal(data[i] ,(2,0,0,1,0)) and np.array_equal(sf.describeEqType(eigvals),(2,0,1,1,0))):
+            if (np.array_equal(data[i] ,(2,0,0,1,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,1,0))):
                 eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
                 sadFocEig.append([i,eigvals[-1].real,eigvals[0].real])
-            elif (np.array_equal(data[i] , (1,0,1,0,0)) and np.array_equal(sf.describeEqType(eigvals),(2,0,1,0,0))):
+            elif (np.array_equal(data[i] , (1,0,1,0,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,0,0))):
                 eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
                 saddlesEig.append([i,eigvals[-1],eigvals[1]])
     result = ValP(saddlesEig,sadFocEig)
     return result
 
 
-def multOnConst(vec,const):
-    for i in range(len(vec)):
-        vec[i]=const*vec[i]
-    return vec
 def createListSymmSaddles(coordsSaddle):
     cs = coordsSaddle
     for i in range(3):
         cs.append([cs[i][1] - cs[i][0], cs[i][2] - cs[i][0], 2 * np.pi - cs[i][0]])
     return cs
 
-def minDistToSaddle(lastPointTraj,coordsSaddle)
+def minDistToSaddle(lastPointTraj,coordsSaddle):
     x,y,z = lastPointTraj
     minDist = 10
     cs = coordsSaddle
@@ -314,8 +310,8 @@ def heterСheck(result,coords, rhs,maxTime):
         if (lam.imag == 0):
             vec = eigvecs[:, i]
     if (vec[0] < 0):
-        vec = multOnConst(vec,-1)
-    x0 = np.add(np.array(x0), (vec.real) * 1e-5);
+        vec = -1*vec
+    x0 = np.add(np.array(x0), (vec.real) * 1e-5)
     rhs_vec = lambda t, X: rhs.getReducedSystem(X)
     sol = solve_ivp(rhs_vec, [0, maxTime], x0, rtol=1e-11, atol=1e-11, dense_output=True)
     x, y, z = sol.y
