@@ -59,20 +59,20 @@ def describeEqType(eigvals):
     nC = len(eigvals) - nS - nU
     issc = 1 if nS > 0 and isComplex(eigvalsS[-1]) else 0
     isuc = 1 if nU > 0 and isComplex(eigvalsU[0]) else 0
-    return (nS, nC, nU, issc, isuc)
+    return [nS, nC, nU, issc, isuc]
 
 
-def describePortrType(dataEqSignatures):
-    phSpaceDim = int(sum(dataEqSignatures[0]))
+def describePortrType(arrEqSignatures):
+    phSpaceDim = int(sum(arrEqSignatures[0]))
     eqTypes = {(i, phSpaceDim-i):0 for i in range(phSpaceDim+1)}
     nonRough = 0
-    for eqSign in dataEqSignatures:
+    for eqSign in arrEqSignatures:
         nS, nC, nU = eqSign
         if nC == 0:
             eqTypes[(nU, nS)] += 1
         else:
             nonRough += 1
-    # nSinksn, nSaddles, nSources,  nNonRough
+    # nSinks, nSaddles, nSources,  nNonRough
     portrType = tuple([eqTypes[(i, phSpaceDim-i)] for i in range(phSpaceDim+1)] + [nonRough])
     return portrType
 
@@ -189,11 +189,10 @@ def filterEq(listEquilibria):
     clustering.fit(X)
     return indicesUniqueEq(clustering.labels_, data)
 
-
-def createFileTopologStructPhasePort(envParams, EqList,params, nameOfFile):
+def writeToFileEqList(envParams, EqList,params, nameOfFile):
     sol = []
     for eq in EqList:
-        sol.append(str(eq))
+        sol.append(eq.strToFile())
     headerStr = ('gamma = {par[0]}\n' +
                  'd = {par[1]}\n' +
                  'X  Y  nS  nC  nU  isSComplex  isUComplex  Re(eigval1)  Im(eigval1)  Re(eigval2)  Im(eigval2)\n' +
@@ -211,7 +210,6 @@ def createFileTopologStructPhasePort(envParams, EqList,params, nameOfFile):
                '%+18.15f', ]
     np.savetxt("{env.pathToOutputDirectory}{}.txt".format(nameOfFile, env=envParams), sol, header=headerStr,fmt=fmtList)
 
-
 def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arrFirstParam, arrSecondParam):
     N, M = numberValuesParam1, numberValuesParam2
     colorGrid = np.zeros((M, N)) * np.NaN
@@ -224,7 +222,7 @@ def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arr
             if curPhPortrType not in diffTypes:
                 diffTypes[curPhPortrType] = curTypeNumber
                 curTypeNumber += 1.
-            colorGrid[i][j] = diffTypes[curPhPortrType]
+            colorGrid[j][i] = diffTypes[curPhPortrType]
     plt.pcolormesh(arrFirstParam, arrSecondParam, colorGrid, cmap=plt.cm.get_cmap('RdBu'))
     plt.colorbar()
     plt.savefig('{}{}.pdf'.format(envParams.pathToOutputDirectory, envParams.imageStamp))
@@ -315,3 +313,9 @@ class Equilibrium:
 
     def __str__(self):
         return ' '.join([str(it) for it in self.coordinates + self.eqType + self.eigenvalues])
+
+    def strToFile(self):
+        eigs = []
+        for val in self.eigenvalues:
+            eigs += [val.real, val.imag]
+        return self.coordinates + self.eqType + eigs
