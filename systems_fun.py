@@ -45,6 +45,28 @@ def prepareEnvironment(envParams):
     clearOutputCommand = 'rm {env.clearAllInOutputDirectory}'.format(env=envParams)
     subprocess.call(clearOutputCommand, shell=True)
 
+class Equilibrium:
+    def __init__(self, coordinates, eigenvalues, eigvectors = None):
+        self.coordinates = list(coordinates)
+        self.eigenvalues = sorted(eigenvalues, key=lambda eigenvalues: eigenvalues.real)
+        self.eqType = describeEqType(np.array(self.eigenvalues))
+        self.eigvectors = eigvectors
+        if len(eigenvalues) != len(coordinates):
+            raise ValueError('Vector of coordinates and vector of eigenvalues must have the same size!')
+
+    def __repr__(self):
+        return "Equilibrium\nCoordinates: {}\nEigenvalues: {}\nType: {}".format(self.coordinates, self.eigenvalues, self.eqType)
+
+    def __str__(self):
+        return ' '.join([str(it) for it in self.coordinates + self.eqType + self.eigenvalues])
+
+    def strToFile(self):
+        eigs = []
+        for val in self.eigenvalues:
+            eigs += [val.real, val.imag]
+        return self.coordinates + self.eqType + eigs
+
+
 
 
 def isComplex(Z):
@@ -237,33 +259,37 @@ def indicesUniqueEq(connectedPoints, nSnCnU):
             arrDiffPoints[tuple(pointParams)] = i
     return arrDiffPoints.values()
 
-def ValP (arrSaddlEig,arrSadFocEig):
-    res = []
-    for i in (arrSaddlEig):
-        for j in (arrSadFocEig):
-            p = (-i[1]/i[2])*(-j[1]/j[2])
-            if (p > 1):
-                res.append([i[0],j[0],p])
-    # res = [[№saddle,№saddle-focus,val P]]
-    return res
+def valP (saddlEq,sdlFocEq):
+    saddlEigs = saddlEq.eigvals
+    sdlFocEigs = sdlFocEq.eigvals
+    # assume that sdlEigs is sorted
+    sdlLeadingS = max([se for se in saddlEigs if se.real < -1e-14])
+    sdlLeadingU = min([se for se in saddlEigs if se.real > +1e-14])
+    # assume that sdlFocEigs is sorted
+    sdlFocLeadS = max([se for se in sdlFocEigs if se.real < -1e-14])
+    sdlFocLeadU = min([se for se in sdlFocEigs if se.real > +1e-14])
+    p = (-sdlLeadingU / sdlLeadingS) * (-sdlFocLeadU / sdlFocLeadS)
+    return p
 
-def goodConf(coords,data, rhs):
-    sadFocEig=[]
-    saddlesEig=[]
-    for i,X in enumerate(coords):
-        X=list(X)
+def goodConfEqList(EqList, rhs):
+    sadFocs=[]
+    saddles=[]
+    for i,eq in enumerate(EqList):
+        X=eq.coordinates
         eqJacMatrix = rhs.getReducedSystemJac([0]+X)
-        eigvals, _ = LA.eig(eqJacMatrix)
+        eigvals, eigvecs = LA.eig(eqJacMatrix)
+        vecs = []
+        for i in enumerate(eigvals):
+            vecs.append(eigvecs[:, i])
         xs,ys =X
         if(xs<=ys):
-            if (np.array_equal(data[i] ,(2,0,0,1,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,1,0))):
+            if (np.array_equal(eq.eqType ,(2,0,0,1,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,1,0))):
+                indices = sorted(eigvals, key=lambda eigvals: eigvals.real)
+                sadFocs.append(Equilibrium([0]+X, [eigvals[i] for i in indices],[vecs[i] for i in indices]))
+            elif (np.array_equal(eq.eqType , (1,0,1,0,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,0,0))):
                 eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
-                sadFocEig.append([i,eigvals[-1].real,eigvals[0].real])
-            elif (np.array_equal(data[i] , (1,0,1,0,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,0,0))):
-                eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
-                saddlesEig.append([i,eigvals[-1],eigvals[1]])
-    result = ValP(saddlesEig,sadFocEig)
-    return result
+                saddles.append(Equilibrium([0]+X, eigvals))
+    return [[sf, sd] for sf in sadFocs for sd in saddles if valP(sf, sd) > 1.]
 
 
 def createListSymmSaddles(coordsSaddle):
@@ -282,40 +308,17 @@ def minDistToSaddle(lastPointTraj,coordsSaddle):
             minDist = dist
     return minDist
 
-def heterСheck(result,coords, rhs,maxTime):
-    coordsSaddle = [0,coords[result[0]][0],coords[result[0]][1]]
-    cs = createListSymmSaddles(coordsSaddle)
-    x0 = [0] + [coords[result[1]][0], coords[result[1]][1]]
-    eqJacMatrix = rhs.getReducedSystemJac(x0)
-    eigvals, eigvecs = LA.eig(eqJacMatrix)
-    for i, lam in enumerate(eigvals):
-        if (lam.imag == 0):
-            vec = eigvecs[:, i]
+def heterСheck(pairSfSd, rhs,maxTime):
+    sf,sd = pairSfSd
+    coordSymmSadds = createListSymmSaddles(sd.coordinates)
+    x0 = sf.coordinates
+    vec = sf.eigvectors[2]
     if (vec[0] < 0):
         vec = -1*vec
     x0 = np.add(np.array(x0), (vec.real) * 1e-5)
     rhs_vec = lambda t, X: rhs.getReducedSystem(X)
     sol = solve_ivp(rhs_vec, [0, maxTime], x0, rtol=1e-11, atol=1e-11, dense_output=True)
     x, y, z = sol.y
-    return minDistToSaddle((x[-1],y[-1],z[-1]),cs)
+    return minDistToSaddle((x[-1],y[-1],z[-1]),coordSymmSadds)
 
 
-class Equilibrium:
-    def __init__(self, coordinates, eigenvalues):
-        self.coordinates = list(coordinates)
-        self.eigenvalues = sorted(eigenvalues, key=lambda eigenvalues: eigenvalues.real)
-        self.eqType = describeEqType(np.array(self.eigenvalues))
-        if len(eigenvalues) != len(coordinates):
-            raise ValueError('Vector of coordinates and vector of eigenvalues must have the same size!')
-
-    def __repr__(self):
-        return "Equilibrium\nCoordinates: {}\nEigenvalues: {}\nType: {}".format(self.coordinates, self.eigenvalues, self.eqType)
-
-    def __str__(self):
-        return ' '.join([str(it) for it in self.coordinates + self.eqType + self.eigenvalues])
-
-    def strToFile(self):
-        eigs = []
-        for val in self.eigenvalues:
-            eigs += [val.real, val.imag]
-        return self.coordinates + self.eqType + eigs
