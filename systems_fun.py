@@ -279,7 +279,7 @@ def goodConfEqList(EqList, rhs):
         eqJacMatrix = rhs.getReducedSystemJac([0]+X)
         eigvals, eigvecs = LA.eig(eqJacMatrix)
         vecs = []
-        for i in enumerate(eigvals):
+        for i in range(len(eigvals)):
             vecs.append(eigvecs[:, i])
         xs,ys =X
         if(xs<=ys):
