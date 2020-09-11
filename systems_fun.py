@@ -11,7 +11,7 @@ from sklearn.cluster import AgglomerativeClustering
 from scipy.integrate import solve_ivp
 
 MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'param', 'bounds',
-                                             'borders','optMethod', 'optMethodParams'])
+                                             'borders','optMethod'])
 
 
 class EnvironmentParameters:
@@ -149,31 +149,26 @@ class NewtonEqFinderUp:
         return allEquilibria
 def createEqList (allEquilibria, rhsJac):
     allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
-    result = np.zeros([len(allEquilibria), 11])
+    EqList = []
     for k, eqCoords in enumerate(allEquilibria):
         eqJacMatrix = rhsJac(eqCoords)
         eigvals, _ = LA.eig(eqJacMatrix)
-        eqTypeData = describeEqType(eigvals)
-        eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
-        eigvals = [eigvals[0].real, eigvals[0].imag, eigvals[1].real, eigvals[1].imag]
-        result[k] = list(eqCoords) + list(eqTypeData) + list(eigvals)
-    return result
+        EqList.append(Equilibrium(eqCoords, eigvals))
+    if len(EqList) > 1:
+        trueStr = filterEq(EqList)
+        trueEqList = [EqList[i] for i in list(trueStr)]
+        return trueEqList
 
-def findEquilibria(rhs, rhsJac, boundaries, borders, method, methodParams):
+    return EqList
+
+def findEquilibria(mapParams):
     def rhsSq(x):
         xArr = np.array(x)
-        vec = rhs(xArr)
-        return np.dot(vec, vec)   
+        vec = mapParams.rhs(xArr)
+        return np.dot(vec, vec)
     
-    methods = {'ShgoEqFinder': ShgoEqFinder, 'NewtonEqFinder':NewtonEqFinder,'NewtonEqFinderUp': NewtonEqFinderUp}
-
-    method_name = method
-    
-    met = methods[method_name](methodParams[0],methodParams[1],methodParams[2])   
-    
-    allEquilibria = met(rhs, rhsSq, rhsJac, boundaries, borders)
-
-    return createEqList(allEquilibria,rhsJac)
+    allEquilibria = mapParams.optMethod(mapParams.rhs, rhsSq, mapParams.rhsJac, mapParams.bounds, mapParams.borders)
+    return createEqList(allEquilibria,mapParams.rhsJac)
 
 
 def inBounds(X, boundaries):
@@ -184,19 +179,25 @@ def inBounds(X, boundaries):
     return ((x > b1) and (x < b2) and (y > b3) and (y < b4))
 
 def filterEq(listEquilibria):
-    X = listEquilibria[:, 0:2]
+    X = []
+    data = []
+    for eq in listEquilibria:
+        X.append(eq.coordinates)
+        data.append(eq.eqType)
     clustering = AgglomerativeClustering(n_clusters=None, affinity='euclidean', linkage='single',
-                                         distance_threshold=(5 * 1e-4))
+                                         distance_threshold=(1e-5))
     clustering.fit(X)
-    data = listEquilibria[:, 2:5]
-    return mergePoints(clustering.labels_, data)
+    return indicesUniqueEq(clustering.labels_, data)
 
-def createFileTopologStructPhasePort(envParams, mapParams, i, j):
-    ud = mapParams.param    
+
+def createFileTopologStructPhasePort(envParams, EqList,params, nameOfFile):
+    sol = []
+    for eq in EqList:
+        sol.append(str(eq))
     headerStr = ('gamma = {par[0]}\n' +
                  'd = {par[1]}\n' +
                  'X  Y  nS  nC  nU  isSComplex  isUComplex  Re(eigval1)  Im(eigval1)  Re(eigval2)  Im(eigval2)\n' +
-                 '0  1  2   3   4   5           6           7            8            9            10').format(par=ud)
+                 '0  1  2   3   4   5           6           7            8            9            10').format(par=params)
     fmtList = ['%+18.15f',
                '%+18.15f',
                '%2u',
@@ -208,16 +209,7 @@ def createFileTopologStructPhasePort(envParams, mapParams, i, j):
                '%+18.15f',
                '%+18.15f',
                '%+18.15f', ]
-    
-    sol = findEquilibria( mapParams.rhs, mapParams.rhsJac,  mapParams.bounds, mapParams.borders, mapParams.optMethod,
-                         mapParams.optMethodParams)
-
-    if list(sol) > 1:
-        trueStr = filterEq(sol)
-        np.savetxt("{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt".format(i, j, env=envParams), sol[list(trueStr), :],
-                   header=headerStr,fmt=fmtList)
-    else:
-        np.savetxt("{env.pathToOutputDirectory}{:0>5}_{:0>5}.txt".format(i, j, env=envParams), sol, header=headerStr,fmt=fmtList)
+    np.savetxt("{env.pathToOutputDirectory}{}.txt".format(nameOfFile, env=envParams), sol, header=headerStr,fmt=fmtList)
 
 
 def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arrFirstParam, arrSecondParam):
@@ -238,16 +230,8 @@ def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arr
     plt.savefig('{}{}.pdf'.format(envParams.pathToOutputDirectory, envParams.imageStamp))
 
 
-def createDistMatrix(coordinatesPoins):
-    X = coordinatesPoins[:, 0]
-    Y = coordinatesPoins[:, 1]
-    Matrix = np.zeros((len(X), len(X))) * np.NaN
-    for i in range(len(X)):
-        for j in range(len(X)):
-            Matrix[i][j] = np.sqrt((X[i] - X[j]) ** 2 + (Y[i] - Y[j]) ** 2)
-    return Matrix
 
-def mergePoints(connectedPoints, nSnCnU):
+def indicesUniqueEq(connectedPoints, nSnCnU):
     arrDiffPoints = {}
     for i in range(len(connectedPoints)):
         pointParams = np.append(nSnCnU[i], connectedPoints[i])
@@ -316,3 +300,18 @@ def heterСheck(result,coords, rhs,maxTime):
     sol = solve_ivp(rhs_vec, [0, maxTime], x0, rtol=1e-11, atol=1e-11, dense_output=True)
     x, y, z = sol.y
     return minDistToSaddle((x[-1],y[-1],z[-1]),cs)
+
+
+class Equilibrium:
+    def __init__(self, coordinates, eigenvalues):
+        self.coordinates = list(coordinates)
+        self.eigenvalues = sorted(eigenvalues, key=lambda eigenvalues: eigenvalues.real)
+        self.eqType = describeEqType(np.array(self.eigenvalues))
+        if len(eigenvalues) != len(coordinates):
+            raise ValueError('Vector of coordinates and vector of eigenvalues must have the same size!')
+
+    def __repr__(self):
+        return "Equilibrium\nCoordinates: {}\nEigenvalues: {}\nType: {}".format(self.coordinates, self.eigenvalues, self.eqType)
+
+    def __str__(self):
+        return ' '.join([str(it) for it in self.coordinates + self.eqType + self.eigenvalues])
