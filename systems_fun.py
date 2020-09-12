@@ -259,16 +259,16 @@ def indicesUniqueEq(connectedPoints, nSnCnU):
             arrDiffPoints[tuple(pointParams)] = i
     return arrDiffPoints.values()
 
-def valP (saddlEq,sdlFocEq):
-    saddlEigs = saddlEq.eigvals
-    sdlFocEigs = sdlFocEq.eigvals
+def valP (sdlFocEq,saddlEq):
+    saddlEigs = saddlEq.eigenvalues
+    sdlFocEigs = sdlFocEq.eigenvalues
     # assume that sdlEigs is sorted
     sdlLeadingS = max([se for se in saddlEigs if se.real < -1e-14])
     sdlLeadingU = min([se for se in saddlEigs if se.real > +1e-14])
     # assume that sdlFocEigs is sorted
     sdlFocLeadS = max([se for se in sdlFocEigs if se.real < -1e-14])
     sdlFocLeadU = min([se for se in sdlFocEigs if se.real > +1e-14])
-    p = (-sdlLeadingU / sdlLeadingS) * (-sdlFocLeadU / sdlFocLeadS)
+    p = (-sdlLeadingU / sdlLeadingS) * (-sdlFocLeadU.real / sdlFocLeadS.real)
     return p
 
 def goodConfEqList(EqList, rhs):
@@ -280,11 +280,11 @@ def goodConfEqList(EqList, rhs):
         eigvals, eigvecs = LA.eig(eqJacMatrix)
         vecs = []
         for i in range(len(eigvals)):
-            vecs.append(eigvecs[:, i])
+            vecs.append(eigvecs[:,i])
         xs,ys =X
         if(xs<=ys):
             if (np.array_equal(eq.eqType ,(2,0,0,1,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,1,0))):
-                indices = sorted(eigvals, key=lambda eigvals: eigvals.real)
+                indices = sorted(range(len(eigvals)), key=lambda i: eigvals[i].real)
                 sadFocs.append(Equilibrium([0]+X, [eigvals[i] for i in indices],[vecs[i] for i in indices]))
             elif (np.array_equal(eq.eqType , (1,0,1,0,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,0,0))):
                 eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
@@ -293,16 +293,15 @@ def goodConfEqList(EqList, rhs):
 
 
 def createListSymmSaddles(coordsSaddle):
-    cs = coordsSaddle
+    cs = [coordsSaddle]
     for i in range(3):
         cs.append([cs[i][1] - cs[i][0], cs[i][2] - cs[i][0], 2 * np.pi - cs[i][0]])
     return cs
 
-def minDistToSaddle(lastPointTraj,coordsSaddle):
+def minDistToSaddle(lastPointTraj,coordsSaddles):
     x,y,z = lastPointTraj
     minDist = 10
-    cs = coordsSaddle
-    for  coordSad in (cs):
+    for  coordSad in (coordsSaddles):
         dist = ((coordSad[0] - x) ** 2 + (coordSad[1] - y) ** 2 + (coordSad[2] - z) ** 2) ** 0.5
         if (minDist > dist):
             minDist = dist
