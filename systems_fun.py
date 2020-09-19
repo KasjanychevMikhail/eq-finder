@@ -10,9 +10,6 @@ from numpy import linalg as LA
 from sklearn.cluster import AgglomerativeClustering
 from scipy.integrate import solve_ivp
 
-MapParameters = namedtuple('MapParameters', ['rhs', 'rhsJac', 'param', 'bounds',
-                                             'borders','optMethod'])
-
 
 class EnvironmentParameters:
     """
@@ -46,11 +43,14 @@ def prepareEnvironment(envParams):
     subprocess.call(clearOutputCommand, shell=True)
 
 class Equilibrium:
-    def __init__(self, coordinates, eigenvalues, eigvectors = None):
+    def __init__(self, coordinates, eigenvalues, eigvectors):
+        eigPairs = list(zip(eigenvalues, eigvectors))
+        eigPairs = sorted(eigPairs, key=lambda p: p[0])
+        eigvalsNew, eigvectsNew = zip(*eigPairs)
         self.coordinates = list(coordinates)
-        self.eigenvalues = sorted(eigenvalues, key=lambda eigenvalues: eigenvalues.real)
+        self.eigenvalues = eigvalsNew
         self.eqType = describeEqType(np.array(self.eigenvalues))
-        self.eigvectors = eigvectors
+        self.eigvectors = eigvectsNew
         if len(eigenvalues) != len(coordinates):
             raise ValueError('Vector of coordinates and vector of eigenvalues must have the same size!')
 
@@ -169,13 +169,21 @@ class NewtonEqFinderUp:
                                         method='broyden1', jac=rhsJac).x)
         allEquilibria = [x for x in Result if abs(rhsSq(x)) < self.eps and inBounds(x, borders)]
         return allEquilibria
+
+def getEquilibriumInfo(pt, rhsJac):
+   eigvals, eigvecs = LA.eig(rhsJac(pt))
+   vecs = []
+   for i in range(len(eigvals)):
+       vecs.append(eigvecs[:, i])
+   return Equilibrium(pt, eigvals, vecs)
+
 def createEqList (allEquilibria, rhsJac):
     allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
     EqList = []
     for k, eqCoords in enumerate(allEquilibria):
-        eqJacMatrix = rhsJac(eqCoords)
-        eigvals, _ = LA.eig(eqJacMatrix)
-        EqList.append(Equilibrium(eqCoords, eigvals))
+        EqList.append(getEquilibriumInfo(eqCoords,rhsJac))
+    # подумать, может всё-таки фильтрацию по близости/типу
+    # сделать отдельной функцией??
     if len(EqList) > 1:
         trueStr = filterEq(EqList)
         trueEqList = [EqList[i] for i in list(trueStr)]
@@ -183,14 +191,14 @@ def createEqList (allEquilibria, rhsJac):
 
     return EqList
 
-def findEquilibria(mapParams):
+def findEquilibria(rhs, rhsJac, bounds, borders,optMethod ):
     def rhsSq(x):
         xArr = np.array(x)
-        vec = mapParams.rhs(xArr)
+        vec = rhs(xArr)
         return np.dot(vec, vec)
     
-    allEquilibria = mapParams.optMethod(mapParams.rhs, rhsSq, mapParams.rhsJac, mapParams.bounds, mapParams.borders)
-    return createEqList(allEquilibria,mapParams.rhsJac)
+    allEquilibria = optMethod(rhs, rhsSq, rhsJac, bounds, borders)
+    return createEqList(allEquilibria,rhsJac)
 
 
 def inBounds(X, boundaries):
@@ -270,33 +278,46 @@ def valP (sdlFocEq,saddlEq):
     sdlFocLeadU = min([se for se in sdlFocEigs if se.real > +1e-14])
     p = (-sdlLeadingU / sdlLeadingS) * (-sdlFocLeadU.real / sdlFocLeadS.real)
     return p
+def embedPointBack(ptOnPlane):
+    return [0] + ptOnPlane
+
+def isPtInUpperTriangle(ptOnPlane):
+    x, y = ptOnPlane
+    return (x <= y)
+
+def isStable2DFocus(eq):
+    return eq.eqType == (2, 0, 0, 1, 0)
+
+def isSaddleFocusWith1dU(eq):
+    return eq.eqType == (2, 0, 1, 1, 0)
+
+def isStable2DSaddle(eq):
+    return eq.eqType == (1, 0, 1, 0, 0)
+
+def isSaddleWith1dU(eq):
+    return eq.eqType == (2, 0, 1, 0, 0)
 
 def goodConfEqList(EqList, rhs):
     sadFocs=[]
     saddles=[]
     for i,eq in enumerate(EqList):
-        X=eq.coordinates
-        eqJacMatrix = rhs.getReducedSystemJac([0]+X)
-        eigvals, eigvecs = LA.eig(eqJacMatrix)
-        vecs = []
-        for i in range(len(eigvals)):
-            vecs.append(eigvecs[:,i])
-        xs,ys =X
-        if(xs<=ys):
-            if (np.array_equal(eq.eqType ,(2,0,0,1,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,1,0))):
-                indices = sorted(range(len(eigvals)), key=lambda i: eigvals[i].real)
-                sadFocs.append(Equilibrium([0]+X, [eigvals[i] for i in indices],[vecs[i] for i in indices]))
-            elif (np.array_equal(eq.eqType , (1,0,1,0,0)) and np.array_equal(describeEqType(eigvals),(2,0,1,0,0))):
-                eigvals = sorted(eigvals, key=lambda eigvals: eigvals.real)
-                saddles.append(Equilibrium([0]+X, eigvals))
-    return [[sf, sd] for sf in sadFocs for sd in saddles if valP(sf, sd) > 1.]
+        ptOnInvPlane = eq.coordinates
+        ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
+        eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
+        if(isPtInUpperTriangle(ptOnInvPlane)):
+            if (isStable2DFocus(eq) and isSaddleFocusWith1dU(eqOnPlaneIn3D)):
+                sadFocs.append(eqOnPlaneIn3D)
+            elif (isStable2DSaddle(eq) and isSaddleWith1dU(eqOnPlaneIn3D)):
+                saddles.append(eqOnPlaneIn3D)
+    return [[sf,[sd  for sd in saddles if valP(sf, sd) > 1.]] for sf in sadFocs]
 
 
-def createListSymmSaddles(coordsSaddle):
-    cs = [coordsSaddle]
-    for i in range(3):
-        cs.append([cs[i][1] - cs[i][0], cs[i][2] - cs[i][0], 2 * np.pi - cs[i][0]])
-    return cs
+def T(X):
+    x, y, z = X
+    return [y-x, z-x, 2*np.pi - x]
+
+def generateSymmetricPoints(pt):
+    return [pt, T(pt), T(T(pt)), T(T(T(pt)))]
 
 def minDistToSaddle(lastPointTraj,coordsSaddles):
     x,y,z = lastPointTraj
@@ -306,18 +327,33 @@ def minDistToSaddle(lastPointTraj,coordsSaddles):
         if (minDist > dist):
             minDist = dist
     return minDist
+def getInitPointsOnUnstable1DSeparatrix(eq):
+    if eq.eqType[2] == 1:
+        unstVector = eq.eigvectors[-1]
+        pt1 = eq.coordinates + unstVector * 1e-5
+        pt2 = eq.coordinates - unstVector * 1e-5
+        return [pt1, pt2]
+    else:
+        raise(ValueError, 'Not a saddle with 1d unstable manifold!')
 
-def heterСheck(pairSfSd, rhs,maxTime):
-    sf,sd = pairSfSd
-    coordSymmSadds = createListSymmSaddles(sd.coordinates)
-    x0 = sf.coordinates
-    vec = sf.eigvectors[2]
-    if (vec[0] < 0):
-        vec = -1*vec
-    x0 = np.add(np.array(x0), (vec.real) * 1e-5)
+def isInCIR(pt):
+    th2, th3, th4 = pt
+    return (0<= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= 2*np.pi)
+
+def computeSeparatrix(eq, rhs, condition, OdeParams, maxTime):
+    pts = getInitPointsOnUnstable1DSeparatrix(eq)
+    startPt = [pt for pt in pts if condition(pt)]
     rhs_vec = lambda t, X: rhs.getReducedSystem(X)
-    sol = solve_ivp(rhs_vec, [0, maxTime], x0, rtol=1e-11, atol=1e-11, dense_output=True)
-    x, y, z = sol.y
-    return minDistToSaddle((x[-1],y[-1],z[-1]),coordSymmSadds)
+    sol = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol = OdeParams['rtol'], atol= OdeParams['atol'], dense_output=True)
+    return sol.y
+
+def heterСheck(sfEq, listOfSaddles, rhs,maxTime):
+    listOfAllSaddles =[]
+    for sd in listOfSaddles:
+        listOfAllSaddles +=  generateSymmetricPoints(sd)
+    separatrix = computeSeparatrix(sfEq,rhs,isInCIR,{'rtol':1e-11, 'atol':1e-11},maxTime)
+    allDistsWithEq = [np.linalg.norm(np.array(pt)-np.array(coordSd)) for pt in separatrix for coordSd in listOfAllSaddles]
+    minDistWithEq = min(allDistsWithEq)
+    return minDistWithEq
 
 

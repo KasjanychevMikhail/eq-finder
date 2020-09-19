@@ -2,7 +2,6 @@ import systems_fun as sf
 import numpy as np
 import pytest
 from sklearn.cluster import AgglomerativeClustering
-from systems_fun import MapParameters
 
 class TestDescribeEqType:
     def test_saddle(self):
@@ -99,9 +98,8 @@ class TestFindEquilibria:
 
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.ShgoEqFinder(300, 30, 1e-10))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
@@ -113,9 +111,8 @@ class TestFindEquilibria:
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.ShgoEqFinder(1000, 100,1e-15))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
@@ -126,9 +123,8 @@ class TestFindEquilibria:
         ud = [-1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.ShgoEqFinder(300, 10,4e-14))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
@@ -139,9 +135,8 @@ class TestFindEquilibria:
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.NewtonEqFinder(21, 21,1e-15))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
@@ -152,9 +147,8 @@ class TestFindEquilibria:
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.NewtonEqFinder(61, 61,1e-18))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
@@ -165,9 +159,8 @@ class TestFindEquilibria:
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.NewtonEqFinder(61, 61,1e-18))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
@@ -179,9 +172,8 @@ class TestFindEquilibria:
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.NewtonEqFinderUp(81, 81,1e-20))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
@@ -192,9 +184,8 @@ class TestFindEquilibria:
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.NewtonEqFinderUp(71, 71,1e-16))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
@@ -205,9 +196,8 @@ class TestFindEquilibria:
         ud = [-1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
-        map_test = MapParameters(rhsCurrent, rhsJacCurrent, ud, self.bounds, self.borders,
+        res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
                                  sf.NewtonEqFinderUp(101, 101,8e-17))
-        res = sf.findEquilibria(map_test)
         data = []
         for eq in res:
             data.append(eq.eqType[0:3])
