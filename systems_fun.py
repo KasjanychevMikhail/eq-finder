@@ -286,16 +286,16 @@ def isPtInUpperTriangle(ptOnPlane):
     return (x <= y)
 
 def isStable2DFocus(eq):
-    return eq.eqType == (2, 0, 0, 1, 0)
+    return eq.eqType == [2, 0, 0, 1, 0]
 
 def isSaddleFocusWith1dU(eq):
-    return eq.eqType == (2, 0, 1, 1, 0)
+    return eq.eqType == [2, 0, 1, 1, 0]
 
 def isStable2DSaddle(eq):
-    return eq.eqType == (1, 0, 1, 0, 0)
+    return eq.eqType == [1, 0, 1, 0, 0]
 
 def isSaddleWith1dU(eq):
-    return eq.eqType == (2, 0, 1, 0, 0)
+    return eq.eqType == [2, 0, 1, 0, 0]
 
 def goodConfEqList(EqList, rhs):
     sadFocs=[]
@@ -309,7 +309,15 @@ def goodConfEqList(EqList, rhs):
                 sadFocs.append(eqOnPlaneIn3D)
             elif (isStable2DSaddle(eq) and isSaddleWith1dU(eqOnPlaneIn3D)):
                 saddles.append(eqOnPlaneIn3D)
-    return [[sf,[sd  for sd in saddles if valP(sf, sd) > 1.]] for sf in sadFocs]
+    conf = []
+    for sf in sadFocs:
+        arrSd = []
+        for sd in saddles :
+            if valP(sf, sd) > 1.:
+                arrSd.append(sd)
+        if len(arrSd) > 0:
+            conf.append([sf,arrSd])
+    return conf
 
 
 def T(X):
@@ -319,14 +327,6 @@ def T(X):
 def generateSymmetricPoints(pt):
     return [pt, T(pt), T(T(pt)), T(T(T(pt)))]
 
-def minDistToSaddle(lastPointTraj,coordsSaddles):
-    x,y,z = lastPointTraj
-    minDist = 10
-    for  coordSad in (coordsSaddles):
-        dist = ((coordSad[0] - x) ** 2 + (coordSad[1] - y) ** 2 + (coordSad[2] - z) ** 2) ** 0.5
-        if (minDist > dist):
-            minDist = dist
-    return minDist
 def getInitPointsOnUnstable1DSeparatrix(eq):
     if eq.eqType[2] == 1:
         unstVector = eq.eigvectors[-1]
@@ -342,17 +342,24 @@ def isInCIR(pt):
 
 def computeSeparatrix(eq, rhs, condition, OdeParams, maxTime):
     pts = getInitPointsOnUnstable1DSeparatrix(eq)
-    startPt = [pt for pt in pts if condition(pt)]
+    for pt in pts:
+        if condition(pt):
+            startPt = pt.real
     rhs_vec = lambda t, X: rhs.getReducedSystem(X)
     sol = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol = OdeParams['rtol'], atol= OdeParams['atol'], dense_output=True)
-    return sol.y
+    coordPtSeparat = []
+    for i in range(len(sol.y[0])):
+        coordPtSeparat.append(sol.y[:,i])
+    return coordPtSeparat
 
-def heterСheck(sfEq, listOfSaddles, rhs,maxTime):
-    listOfAllSaddles =[]
+
+def heterСheck(sfEq, listOfSaddles, rhs, maxTime):
+    listOfAllSaddles = []
     for sd in listOfSaddles:
-        listOfAllSaddles +=  generateSymmetricPoints(sd)
-    separatrix = computeSeparatrix(sfEq,rhs,isInCIR,{'rtol':1e-11, 'atol':1e-11},maxTime)
-    allDistsWithEq = [np.linalg.norm(np.array(pt)-np.array(coordSd)) for pt in separatrix for coordSd in listOfAllSaddles]
+        listOfAllSaddles += generateSymmetricPoints(sd.coordinates)
+    separatrix = computeSeparatrix(sfEq, rhs, isInCIR, {'rtol': 1e-11, 'atol': 1e-11}, maxTime)
+    allDistsWithEq = [np.linalg.norm(np.array(pt) - np.array(coordSd)) for pt in separatrix for coordSd in
+                      listOfAllSaddles]
     minDistWithEq = min(allDistsWithEq)
     return minDistWithEq
 
