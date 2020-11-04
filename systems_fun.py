@@ -45,7 +45,7 @@ def prepareEnvironment(envParams):
 class Equilibrium:
     def __init__(self, coordinates, eigenvalues, eigvectors):
         eigPairs = list(zip(eigenvalues, eigvectors))
-        eigPairs = sorted(eigPairs, key=lambda p: p[0])
+        eigPairs = sorted(eigPairs, key=lambda p: p[0].real)
         eigvalsNew, eigvectsNew = zip(*eigPairs)
         self.coordinates = list(coordinates)
         self.eigenvalues = eigvalsNew
@@ -180,7 +180,7 @@ def getEquilibriumInfo(pt, rhsJac):
 def createEqList (allEquilibria, rhsJac):
     allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
     EqList = []
-    for k, eqCoords in enumerate(allEquilibria):
+    for eqCoords in allEquilibria:
         EqList.append(getEquilibriumInfo(eqCoords,rhsJac))
     # подумать, может всё-таки фильтрацию по близости/типу
     # сделать отдельной функцией??
@@ -271,11 +271,11 @@ def valP (sdlFocEq,saddlEq):
     saddlEigs = saddlEq.eigenvalues
     sdlFocEigs = sdlFocEq.eigenvalues
     # assume that sdlEigs is sorted
-    sdlLeadingS = max([se for se in saddlEigs if se.real < -1e-14])
-    sdlLeadingU = min([se for se in saddlEigs if se.real > +1e-14])
+    sdlLeadingS = max([se for se in saddlEigs if se.real < -1e-14], key=lambda p: p.real)
+    sdlLeadingU = min([se for se in saddlEigs if se.real > +1e-14], key=lambda p: p.real)
     # assume that sdlFocEigs is sorted
-    sdlFocLeadS = max([se for se in sdlFocEigs if se.real < -1e-14])
-    sdlFocLeadU = min([se for se in sdlFocEigs if se.real > +1e-14])
+    sdlFocLeadS = max([se for se in sdlFocEigs if se.real < -1e-14], key=lambda p: p.real)
+    sdlFocLeadU = min([se for se in sdlFocEigs if se.real > +1e-14], key=lambda p: p.real)
     p = (-sdlLeadingU / sdlLeadingS) * (-sdlFocLeadU.real / sdlFocLeadS.real)
     return p
 def embedPointBack(ptOnPlane):
@@ -291,7 +291,7 @@ def isStable2DFocus(eq):
 def isSaddleFocusWith1dU(eq):
     return eq.eqType == [2, 0, 1, 1, 0]
 
-def isStable2DSaddle(eq):
+def is2DSaddle(eq):
     return eq.eqType == [1, 0, 1, 0, 0]
 
 def isSaddleWith1dU(eq):
@@ -300,14 +300,14 @@ def isSaddleWith1dU(eq):
 def goodConfEqList(EqList, rhs):
     sadFocs=[]
     saddles=[]
-    for i,eq in enumerate(EqList):
+    for eq in EqList:
         ptOnInvPlane = eq.coordinates
         ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
         eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
         if(isPtInUpperTriangle(ptOnInvPlane)):
             if (isStable2DFocus(eq) and isSaddleFocusWith1dU(eqOnPlaneIn3D)):
                 sadFocs.append(eqOnPlaneIn3D)
-            elif (isStable2DSaddle(eq) and isSaddleWith1dU(eqOnPlaneIn3D)):
+            elif (is2DSaddle(eq) and isSaddleWith1dU(eqOnPlaneIn3D)):
                 saddles.append(eqOnPlaneIn3D)
     conf = []
     for sf in sadFocs:
