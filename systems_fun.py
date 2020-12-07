@@ -4,7 +4,6 @@ import scipy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from collections import namedtuple
 from scipy import optimize
 from numpy import linalg as LA
 from sklearn.cluster import AgglomerativeClustering
@@ -178,7 +177,8 @@ def getEquilibriumInfo(pt, rhsJac):
    return Equilibrium(pt, eigvals, vecs)
 
 def createEqList (allEquilibria, rhsJac):
-    allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
+    if len(allEquilibria) > 1:
+        allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
     EqList = []
     for eqCoords in allEquilibria:
         EqList.append(getEquilibriumInfo(eqCoords,rhsJac))
@@ -338,7 +338,7 @@ def getInitPointsOnUnstable1DSeparatrix(eq):
 
 def isInCIR(pt):
     th2, th3, th4 = pt
-    return (0<= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= 2*np.pi)
+    return (0-1e-7<= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2*np.pi+1e-7))
 
 def computeSeparatrix(eq, rhs, condition, OdeParams, maxTime):
     pts = getInitPointsOnUnstable1DSeparatrix(eq)
