@@ -1,5 +1,4 @@
 import os
-import subprocess
 import scipy
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,35 +10,12 @@ from scipy.integrate import solve_ivp
 
 
 class EnvironmentParameters:
-    """
-    Class that stores information about where
-    to get source, where to put compiled version
-    and where to save output files
-    """
-
     def __init__(self, pathToOutputDirectory, outputStamp, imageStamp):
         assert (os.path.isdir(pathToOutputDirectory)), 'Output directory does not exist!'
         self.pathToOutputDirectory = os.path.join(os.path.normpath(pathToOutputDirectory), '')
         self.outputStamp = outputStamp
         self.imageStamp = imageStamp
 
-    @property
-    def clearAllInOutputDirectory(self):
-        return os.path.join(self.pathToOutputDirectory, '*')
-
-    @property
-    def fullExecName(self):
-        return os.path.join(self.pathToOutputDirectory, self.outputExecutableName)
-
-
-def prepareEnvironment(envParams):
-    """
-    Clears output directory and copies executable
-    """
-
-    assert isinstance(envParams, EnvironmentParameters)
-    clearOutputCommand = 'rm {env.clearAllInOutputDirectory}'.format(env=envParams)
-    subprocess.call(clearOutputCommand, shell=True)
 
 class Equilibrium:
     def __init__(self, coordinates, eigenvalues, eigvectors):
@@ -219,7 +195,7 @@ def filterEq(listEquilibria):
     clustering.fit(X)
     return indicesUniqueEq(clustering.labels_, data)
 
-def writeToFileEqList(envParams, EqList,params, nameOfFile):
+def writeToFileEqList(envParams: EnvironmentParameters, EqList,params, nameOfFile):
     sol = []
     for eq in EqList:
         sol.append(eq.strToFile())
@@ -240,7 +216,7 @@ def writeToFileEqList(envParams, EqList,params, nameOfFile):
                '%+18.15f', ]
     np.savetxt("{env.pathToOutputDirectory}{}.txt".format(nameOfFile, env=envParams), sol, header=headerStr,fmt=fmtList)
 
-def createBifurcationDiag(envParams, numberValuesParam1, numberValuesParam2, arrFirstParam, arrSecondParam):
+def createBifurcationDiag(envParams: EnvironmentParameters, numberValuesParam1, numberValuesParam2, arrFirstParam, arrSecondParam):
     N, M = numberValuesParam1, numberValuesParam2
     colorGrid = np.zeros((M, N)) * np.NaN
     diffTypes = {}
