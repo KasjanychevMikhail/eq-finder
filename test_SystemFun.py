@@ -3,43 +3,82 @@ import numpy as np
 import pytest
 from sklearn.cluster import AgglomerativeClustering
 
+@pytest.fixture
+def stdPS():
+    return sf.STD_PRECISION
+
 class TestDescribeEqType:
-    def test_saddle(self):
-        assert sf.describeEqType(np.array([-1, 1])) == [1, 0, 1, 0, 0]
+    def test_saddle(self, stdPS):
+        assert sf.describeEqType(np.array([-1, 1]), stdPS) == [1, 0, 1, 0, 0]
 
-    def test_stable_node(self):
-        assert sf.describeEqType(np.array([-1, -1])) == [2, 0, 0, 0, 0]
+    def test_stable_node(self, stdPS):
+        assert sf.describeEqType(np.array([-1, -1]), stdPS) == [2, 0, 0, 0, 0]
 
-    def test_stable_focus(self):
-        assert sf.describeEqType(np.array([-1 + 1j, -1 - 1j])) == [2, 0, 0, 1, 0]
+    def test_stable_focus(self, stdPS):
+        assert sf.describeEqType(np.array([-1 + 1j, -1 - 1j]), stdPS) == [2, 0, 0, 1, 0]
 
-    def test_unstable_node(self):
-        assert sf.describeEqType(np.array([+1, +1])) == [0, 0, 2, 0, 0]
+    def test_unstable_node(self, stdPS):
+        assert sf.describeEqType(np.array([+1, +1]), stdPS) == [0, 0, 2, 0, 0]
 
-    def test_unstable_focus(self):
-        assert sf.describeEqType(np.array([1 + 1j, 1 - 1j])) == [0, 0, 2, 0, 1]
+    def test_unstable_focus(self, stdPS):
+        assert sf.describeEqType(np.array([1 + 1j, 1 - 1j]), stdPS) == [0, 0, 2, 0, 1]
 
-    def test_passingTuple(self):
+    def test_passingTuple(self, stdPS):
         # rewrite as expecting some exception
         with pytest.raises(TypeError):
-            sf.describeEqType([1 + 1j, 1 - 1j]) == [0, 0, 2, 0, 1]
+            sf.describeEqType([1 + 1j, 1 - 1j], stdPS) == [0, 0, 2, 0, 1]
         # assert sf.describeEqType([1+1j, 1-1j])==(0, 0, 2, 0, 1)
 
-    def test_almost_focus(self):
-        assert sf.describeEqType(np.array([-1e-15 + 1j, -1e-15 - 1j])) == [0, 2, 0, 0, 0]
+    def test_almost_focus(self, stdPS):
+        assert sf.describeEqType(np.array([-1e-15 + 1j, -1e-15 - 1j]), stdPS) == [0, 2, 0, 0, 0]
 
-    def test_center(self):
-        assert sf.describeEqType(np.array([1j, - 1j])) == [0, 2, 0, 0, 0]
+    def test_center(self, stdPS):
+        assert sf.describeEqType(np.array([1j, - 1j]), stdPS) == [0, 2, 0, 0, 0]
 
 class TestISComplex:
-    def test_complex(self):
-        assert sf.isComplex(1+2j) == 1
+    def test_complex(self, stdPS):
+        assert stdPS.isComplex(1+2j) == 1
 
-    def test_real(self):
-        assert sf.isComplex(1) == 0
+    def test_real(self, stdPS):
+        assert stdPS.isComplex(1) == 0
 
-    def test_complex_without_real(self):
-        assert sf.isComplex(8j) == 1
+    def test_complex_without_real(self, stdPS):
+        assert stdPS.isComplex(8j) == 1
+
+@pytest.fixture
+def sorted2DSaddle():
+    return sf.Equilibrium([0.]*2, [-1., 1.], [[0]*2]*2)
+
+@pytest.fixture
+def unsorted2DSaddle():
+    return sf.Equilibrium([0.]*2, [+2., -11.], [[0]*2]*2)
+
+@pytest.fixture
+def unsrt3DSadFoc():
+    return sf.Equilibrium([0.]*3, [-1+1j, +3, -1-1j], [[0]*3]*3)
+
+@pytest.fixture
+def unsrt3DSaddle():
+    return sf.Equilibrium([0.]*3, [-1, 1, 2], [[0]*3]*3)
+
+class TestLeadingEigenvalues:
+    def test_srt2DSadLeadS(self, sorted2DSaddle, stdPS):
+        assert sorted2DSaddle.getLeadSEigRe(stdPS) == -1.
+    def test_srt2DSadLeadU(self, sorted2DSaddle, stdPS):
+        assert sorted2DSaddle.getLeadUEigRe(stdPS) == +1.
+    def test_unsrt2DSadLeadS(self, unsorted2DSaddle, stdPS):
+        assert unsorted2DSaddle.getLeadSEigRe(stdPS) == -11.
+    def test_unsrt2DSadLeadU(self, unsorted2DSaddle, stdPS):
+        assert unsorted2DSaddle.getLeadUEigRe(stdPS) == +2.
+    def test_unsrt3DSadFocLeadS(self, unsrt3DSadFoc, stdPS):
+        assert unsrt3DSadFoc.getLeadSEigRe(stdPS) == -1.
+    def test_unsrt3DSadFocLeadU(self, unsrt3DSadFoc, stdPS):
+        assert unsrt3DSadFoc.getLeadUEigRe(stdPS) == +3.
+    def test_unsrt3DSaddleLeadS(self, unsrt3DSaddle, stdPS):
+        assert unsrt3DSaddle.getLeadSEigRe(stdPS) == -1
+    def test_unsrt3DSaddleLeadU(self, unsrt3DSaddle, stdPS):
+        assert unsrt3DSaddle.getLeadUEigRe(stdPS) == +1
+
 
 class TestInBounds:
     def test_inBounds(self):
@@ -93,113 +132,113 @@ class TestFindEquilibria:
     bounds = [(-3.5, 3.5), (-3.5, 3.5)]
     borders = [(-3.5 , 3.5 ), (-3.5 , 3.5)]
 
-    def test_FindEqInSinglePoint(self):
+    def test_FindEqInSinglePoint(self, stdPS):
         ud = [-0.5,0,0,0]
 
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.ShgoEqFinder(300, 30, 1e-10))
+                                 sf.ShgoEqFinder(300, 30, 1e-10), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
 
 
-    def test_FindEqInSinglePoint2(self):
+    def test_FindEqInSinglePoint2(self, stdPS):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.ShgoEqFinder(1000, 100,1e-15))
+                                 sf.ShgoEqFinder(1000, 100,1e-15), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
 
-    def test_FindEqInSinglePoint3(self):
+    def test_FindEqInSinglePoint3(self, stdPS):
         ud = [-1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.ShgoEqFinder(300, 10,4e-14))
+                                 sf.ShgoEqFinder(300, 10,4e-14), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
 
-    def test_FindEq2InSinglePointNewton(self):
+    def test_FindEq2InSinglePointNewton(self, stdPS):
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinder(21, 21,1e-15))
+                                 sf.NewtonEqFinder(21, 21,1e-15), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
 
-    def test_FindEqInSinglePointNewton2(self):
+    def test_FindEqInSinglePointNewton2(self, stdPS):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinder(61, 61,1e-18))
+                                 sf.NewtonEqFinder(61, 61,1e-18), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
 
-    def test_FindEqInSinglePointNewton3(self):
+    def test_FindEqInSinglePointNewton3(self, stdPS):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinder(61, 61,1e-18))
+                                 sf.NewtonEqFinder(61, 61,1e-18), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
 
 
-    def test_FindEqInSinglePointNewtonUp(self):
+    def test_FindEqInSinglePointNewtonUp(self, stdPS):
         ud = [-0.5,0,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinderUp(81, 81,1e-20))
+                                 sf.NewtonEqFinderUp(81, 81,1e-20), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
 
-    def test_FindEqInSinglePointNewtonUp2(self):
+    def test_FindEqInSinglePointNewtonUp2(self, stdPS):
         ud = [1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinderUp(71, 71,1e-16))
+                                 sf.NewtonEqFinderUp(71, 71,1e-16), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
 
-    def test_FindEqInSinglePointNewtonUp3(self):
+    def test_FindEqInSinglePointNewtonUp3(self, stdPS):
         ud = [-1.5,0.5,0,0]
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinderUp(101, 101,8e-17))
+                                 sf.NewtonEqFinderUp(101, 101,8e-17), stdPS)
         data = []
         for eq in res:
-            data.append(eq.eqType[0:3])
+            data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
