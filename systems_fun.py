@@ -370,25 +370,32 @@ def isInCIR(pt):
     return (0 - 1e-7 <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi + 1e-7))
 
 
-def computeSeparatrix(eq: Equilibrium, rhs, condition, ps: PrecisionSettings, maxTime):
+def computeSeparatrix(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, condition = None, numberSep=None):
     pts = getInitPointsOnUnstable1DSeparatrix(eq, ps)
-    for pt in pts:
-        if condition(pt):
-            startPt = pt.real
-    rhs_vec = lambda t, X: rhs.getReducedSystem(X)
+    if condition:
+        for pt in pts:
+            if condition(pt):
+                startPt = pt.real
+    else:
+        startPt = pts[numberSep].real
+
+    rhs_vec = lambda t, X: rhs(X) #getReducedSystem(X)
     sol = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol=ps.rTol, atol=ps.aTol, dense_output=True)
     coordPtSeparat = []
     for i in range(len(sol.y[0])):
         coordPtSeparat.append(sol.y[:, i])
     return coordPtSeparat
 
+def createListofAllSymmEq(listOfEq: list[Equilibrium]):
+    listOfAllEq = []
+    for sd in listOfEq:
+        listOfAllEq += generateSymmetricPoints(sd.coordinates)
+    return listOfAllEq
 
-def heterCheck(sfEq: Equilibrium, listOfSaddles: list[Equilibrium], rhs, maxTime, ps: PrecisionSettings):
-    listOfAllSaddles = []
-    for sd in listOfSaddles:
-        listOfAllSaddles += generateSymmetricPoints(sd.coordinates)
-    separatrix = computeSeparatrix(sfEq, rhs, isInCIR, ps, maxTime)
+def heterCheck(Eq: Equilibrium, listOfEq: list[Equilibrium], rhs, maxTime, ps: PrecisionSettings, condition = None, numberSep = None):
+
+    separatrix = computeSeparatrix(Eq, rhs, ps, maxTime, condition= condition, numberSep= numberSep)
     allDistsWithEq = [np.linalg.norm(np.array(pt) - np.array(coordSd)) for pt in separatrix for coordSd in
-                      listOfAllSaddles]
+                      listOfEq]
     minDistWithEq = min(allDistsWithEq)
     return minDistWithEq
