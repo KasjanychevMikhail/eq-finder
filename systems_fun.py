@@ -337,12 +337,9 @@ def goodConfEqList(EqList, rhs, ps: PrecisionSettings):
                 saddles.append(eqOnPlaneIn3D)
     conf = []
     for sf in sadFocs:
-        arrSd = []
         for sd in saddles:
             if valP(sf, sd, ps) > 1.:
-                arrSd.append(sd)
-        if len(arrSd) > 0:
-            conf.append([sf, arrSd])
+                conf.append([sf, sd])
     return conf
 
 
@@ -393,7 +390,6 @@ def createListofAllSymmEq(listOfEq: list[Equilibrium]):
     return listOfAllEq
 
 def heterCheck(Eq: Equilibrium, listOfEq: list[Equilibrium], rhs, maxTime, ps: PrecisionSettings, condition = None, numberSep = None):
-
     separatrix = computeSeparatrix(Eq, rhs, ps, maxTime, condition= condition, numberSep= numberSep)
     allDistsWithEq = [np.linalg.norm(np.array(pt) - np.array(coordSd)) for pt in separatrix for coordSd in
                       listOfEq]
