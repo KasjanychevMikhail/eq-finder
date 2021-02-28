@@ -30,7 +30,7 @@ for i,a in enumerate(alphas):
         # Находим состояния равновесия
         eqList = sf.findEquilibria(rhs.getRestriction,rhs.getRestrictionJac,bounds,bordersEq,sf.ShgoEqFinder(300,30,1e-10), ps)
         # Из всех состояний равновесия отбираем нужные нам конфигурации
-        gfe = sf.goodConfEqList(eqList, rhs, ps)
+        gfe = sf.getTresserPairs(eqList, rhs, ps)
         if (len(gfe)>0 ):
             colorGridHeterIndMap[j][i] = 1
             for SfSd in gfe:
@@ -50,7 +50,7 @@ plt.savefig('HeterIndMap11x11')
 ud = [0.5,1,1,1]
 rhs=sys.FourBiharmonicPhaseOscillators(ud[0],ud[1],ud[2],ud[3])
 eqList = sf.findEquilibria(rhs.getRestriction,rhs.getRestrictionJac,bounds,bordersEq,sf.ShgoEqFinder(300,30,1e-10), ps)
-gfe = sf.goodConfEqList(eqList,rhs, ps)
+gfe = sf.getTresserPairs(eqList, rhs, ps)
 
 xs = ys = np.linspace(0, +2 * np.pi, 1001)
 res = np.zeros([len(xs), len(xs)])
@@ -81,13 +81,13 @@ for i,params in enumerate(ValParams):
     ud = [0.5,a,b,1]
     rhs=sys.FourBiharmonicPhaseOscillators(ud[0],ud[1],ud[2],ud[3])
     eqList = sf.findEquilibria(rhs.getRestriction,rhs.getRestrictionJac,bounds,bordersEq,sf.ShgoEqFinder(300,30,1e-10), ps)
-    gfe = sf.goodConfEqList(eqList,rhs, ps)
+    gfe = sf.getTresserPairs(eqList, rhs, ps)
     if (len(gfe)>0 ):
         for SfSd in gfe:
             dist = sf.heterCheck(SfSd[0],SfSd[1],rhs,1000, ps)
             if (dist<1e-5):
                 pair = SfSd
-    sep1 = sf.computeSeparatrix(pair[0], rhs, sf.isInCIR, ps, 1000)
+    sep1 = sf.computeSeparatrices(pair[0], rhs, sf.isInCIR, ps, 1000)
     x,y,z = zip(*sep1)
     fig, axs = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(30,10))
 

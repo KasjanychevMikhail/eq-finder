@@ -19,16 +19,25 @@ class EnvironmentParameters:
 
 class PrecisionSettings:
     def __init__(self, zeroImagPartEps, zeroRealPartEps, clustDistThreshold, separatrixShift, separatrix_rTol,
-                 separatrix_aTol):
+                 separatrix_aTol, sdlSinkPrxty, sfocSddlPrxty):
         assert zeroImagPartEps > 0, "Precision must be greater than zero!"
         assert zeroRealPartEps > 0, "Precision must be greater than zero!"
         assert clustDistThreshold > 0, "Precision must be greater than zero!"
+        assert separatrixShift  > 0, "Precision must be greater than zero!"
+        assert separatrix_rTol  > 0, "Precision must be greater than zero!"
+        assert separatrix_aTol  > 0, "Precision must be greater than zero!"
+        assert sdlSinkPrxty  > 0, "Precision must be greater than zero!"
+        assert sfocSddlPrxty  > 0, "Precision must be greater than zero!"
+
+
         self.zeroImagPartEps = zeroImagPartEps
         self.zeroRealPartEps = zeroRealPartEps
         self.clustDistThreshold = clustDistThreshold
         self.separatrixShift = separatrixShift
         self.rTol = separatrix_rTol
         self.aTol = separatrix_aTol
+        self.sdlSinkPrxty = sdlSinkPrxty
+        self.sfocSddlPrxty = sfocSddlPrxty
 
     def isEigStable(self, Z):
         return Z.real < -self.zeroRealPartEps
@@ -45,7 +54,9 @@ STD_PRECISION = PrecisionSettings(zeroImagPartEps=1e-14,
                                   clustDistThreshold=1e-5,
                                   separatrixShift=1e-5,
                                   separatrix_rTol=1e-11,
-                                  separatrix_aTol=1e-11)
+                                  separatrix_aTol=1e-11,
+                                  sdlSinkPrxty=1e-8,
+                                  sfocSddlPrxty=1e-5)
 
 
 class Equilibrium:
@@ -323,7 +334,7 @@ def has1DUnstable(eq, ps: PrecisionSettings):
     return eq.getEqType(ps)[2] == 1
 
 
-def goodConfEqList(EqList, rhs, ps: PrecisionSettings):
+def getTresserPairs(EqList, rhs, ps: PrecisionSettings):
     sadFocs = []
     saddles = []
     for eq in EqList:
@@ -352,14 +363,19 @@ def generateSymmetricPoints(pt):
     return [pt, T(pt), T(T(pt)), T(T(T(pt)))]
 
 
-def getInitPointsOnUnstable1DSeparatrix(eq, ps: PrecisionSettings):
+def getInitPointsOnUnstable1DSeparatrix(eq, condition, ps: PrecisionSettings):
     if has1DUnstable(eq, ps):
         unstVector = eq.eigvectors[-1]
-        pt1 = eq.coordinates + unstVector * ps.separatrixShift
-        pt2 = eq.coordinates - unstVector * ps.separatrixShift
-        return [pt1, pt2]
+        pt1 = (eq.coordinates + unstVector * ps.separatrixShift).real
+        pt2 = (eq.coordinates - unstVector * ps.separatrixShift).real
+        allStartPts = [pt1, pt2]
+        return [pt for pt in allStartPts if condition(pt, eq.coordinates)]
     else:
         raise (ValueError, 'Not a saddle with 1d unstable manifold!')
+
+
+def pickBothSeparatrices(ptCoord, eqCoord):
+    return True
 
 
 def isInCIR(pt):
@@ -367,21 +383,17 @@ def isInCIR(pt):
     return (0 - 1e-7 <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi + 1e-7))
 
 
-def computeSeparatrix(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, condition = None, numberSep=None):
-    pts = getInitPointsOnUnstable1DSeparatrix(eq, ps)
-    if condition:
-        for pt in pts:
-            if condition(pt):
-                startPt = pt.real
-    else:
-        startPt = pts[numberSep].real
+def pickCirSeparatrix(ptCoord, eqCoord):
+    return isInCIR(ptCoord)
 
-    rhs_vec = lambda t, X: rhs(X) #getReducedSystem(X)
-    sol = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol=ps.rTol, atol=ps.aTol, dense_output=True)
-    coordPtSeparat = []
-    for i in range(len(sol.y[0])):
-        coordPtSeparat.append(sol.y[:, i])
-    return coordPtSeparat
+def computeSeparatrices(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, condition):
+    startPts = getInitPointsOnUnstable1DSeparatrix(eq, condition, ps)
+    rhs_vec = lambda t, X: rhs(X)
+    separatrices = []
+    for startPt in startPts:
+        sol = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol=ps.rTol, atol=ps.aTol, dense_output=True)
+        separatrices.append(np.transpose(sol.y))
+    return separatrices
 
 def createListofAllSymmEq(listOfEq: list[Equilibrium]):
     listOfAllEq = []
@@ -390,7 +402,7 @@ def createListofAllSymmEq(listOfEq: list[Equilibrium]):
     return listOfAllEq
 
 def heterCheck(Eq: Equilibrium, listOfEq: list[Equilibrium], rhs, maxTime, ps: PrecisionSettings, condition = None, numberSep = None):
-    separatrix = computeSeparatrix(Eq, rhs, ps, maxTime, condition= condition, numberSep= numberSep)
+    separatrix = computeSeparatrices(Eq, rhs, ps, maxTime, condition= condition, numberSep= numberSep)
     allDistsWithEq = [np.linalg.norm(np.array(pt) - np.array(coordSd)) for pt in separatrix for coordSd in
                       listOfEq]
     minDistWithEq = min(allDistsWithEq)
