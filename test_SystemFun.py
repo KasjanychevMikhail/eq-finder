@@ -2,6 +2,7 @@ import systems_fun as sf
 import numpy as np
 import pytest
 from sklearn.cluster import AgglomerativeClustering
+import findTHeteroclinic as fth
 
 @pytest.fixture
 def stdPS():
@@ -242,3 +243,35 @@ class TestFindEquilibria:
             data.append(eq.getEqType(stdPS)[0:3])
         describe = sf.describePortrType(data)
         assert describe == self.analyticFind(ud)
+
+@pytest.fixture
+def duffingSetup():
+    class Duffing:
+        def __init__(self):
+            pass
+
+        def rhs(self, X):
+            x, y = X
+            return [y, -x * (1 - x * x)]
+
+        def rhsJac(self, X):
+            x, y = X
+            return [[0, 1], [-1 + 3 * x * x, 0]]
+
+    fstCds = (-1, 0)
+    sndCds = (+1, 0)
+    ob = Duffing()
+    fstEq = sf.getEquilibriumInfo(fstCds, ob.rhsJac)
+    sndEq = sf.getEquilibriumInfo(sndCds, ob.rhsJac)
+    pairsToCheck = [(fstEq, sndEq)]
+
+    def rightSep(ptCoord, eqCoord):
+        return ptCoord[0] > eqCoord[0]
+
+    return (ob, rightSep, pairsToCheck)
+
+def test_Duffing(duffingSetup):
+    ob, rightSep, pairsToCheck = duffingSetup
+    out = fth.checkConnection(pairsToCheck, fth.sf.STD_PRECISION, ob.rhs, ob.rhsJac,
+                              fth.idTransform, rightSep, fth.idListTransform, lambda X: fth.hasExactly(1, X), 1e-5, 1000.)
+    assert out[0]['dist'] < 1e-5

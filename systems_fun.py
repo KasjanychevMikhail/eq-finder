@@ -335,6 +335,12 @@ def has1DUnstable(eq, ps: PrecisionSettings):
 
 
 def getTresserPairs(EqList, rhs, ps: PrecisionSettings):
+    '''
+    Accepts EqList — a list of all Equilibria on invariant plane.
+    Returns pairs of Equilibria that might be organized in
+    heteroclinic cycle with a Smale's horseshoe nearby.
+    The output Equilibria are given w.r.t. invariant plane.
+    '''
     sadFocs = []
     saddles = []
     for eq in EqList:
@@ -343,14 +349,14 @@ def getTresserPairs(EqList, rhs, ps: PrecisionSettings):
         eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
         if (isPtInUpperTriangle(ptOnInvPlane)):
             if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
-                sadFocs.append(eqOnPlaneIn3D)
+                sadFocs.append((eq, eqOnPlaneIn3D))
             elif (is2DSaddle(eq, ps) and is3DSaddleWith1dU(eqOnPlaneIn3D, ps)):
-                saddles.append(eqOnPlaneIn3D)
+                saddles.append((eq, eqOnPlaneIn3D))
     conf = []
-    for sf in sadFocs:
-        for sd in saddles:
-            if valP(sf, sd, ps) > 1.:
-                conf.append([sf, sd])
+    for sf2D, sf3D in sadFocs:
+        for sd2D, sd3D in saddles:
+            if valP(sf3D, sd3D, ps) > 1.:
+                conf.append((sd2D, sf2D))
     return conf
 
 
@@ -371,7 +377,7 @@ def getInitPointsOnUnstable1DSeparatrix(eq, condition, ps: PrecisionSettings):
         allStartPts = [pt1, pt2]
         return [pt for pt in allStartPts if condition(pt, eq.coordinates)]
     else:
-        raise (ValueError, 'Not a saddle with 1d unstable manifold!')
+        raise ValueError('Not a saddle with 1d unstable manifold!')
 
 
 def pickBothSeparatrices(ptCoord, eqCoord):
@@ -394,16 +400,3 @@ def computeSeparatrices(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, co
         sol = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol=ps.rTol, atol=ps.aTol, dense_output=True)
         separatrices.append(np.transpose(sol.y))
     return separatrices
-
-def createListofAllSymmEq(listOfEq: list[Equilibrium]):
-    listOfAllEq = []
-    for sd in listOfEq:
-        listOfAllEq += generateSymmetricPoints(sd.coordinates)
-    return listOfAllEq
-
-def heterCheck(Eq: Equilibrium, listOfEq: list[Equilibrium], rhs, maxTime, ps: PrecisionSettings, condition = None, numberSep = None):
-    separatrix = computeSeparatrices(Eq, rhs, ps, maxTime, condition= condition, numberSep= numberSep)
-    allDistsWithEq = [np.linalg.norm(np.array(pt) - np.array(coordSd)) for pt in separatrix for coordSd in
-                      listOfEq]
-    minDistWithEq = min(allDistsWithEq)
-    return minDistWithEq
