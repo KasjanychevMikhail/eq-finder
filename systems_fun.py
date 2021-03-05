@@ -55,8 +55,8 @@ STD_PRECISION = PrecisionSettings(zeroImagPartEps=1e-14,
                                   separatrixShift=1e-5,
                                   separatrix_rTol=1e-11,
                                   separatrix_aTol=1e-11,
-                                  sdlSinkPrxty=1e-8,
-                                  sfocSddlPrxty=1e-5)
+                                  sdlSinkPrxty=1e-5,
+                                  sfocSddlPrxty=1e-4)
 
 
 class Equilibrium:

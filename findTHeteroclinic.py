@@ -53,8 +53,8 @@ def idListTransform(X, rhsJac):
     """
     return [X]
 
-def hasExactly(num, seps):
-    return len(seps) == num
+def hasExactly(num):
+    return lambda seps: len(seps) == num
 
 def anyNumber(seps):
     return True
@@ -72,7 +72,7 @@ def cirTransform(eq: sf.Equilibrium, rhsJac):
     coords = sf.generateSymmetricPoints(eq.coordinates)
     return [sf.getEquilibriumInfo(cd, rhsJac) for cd in coords]
 
-def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings):
+def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, maxTime):
     rhsInvPlane = osc.getRestriction
     jacInvPlane = osc.getRestrictionJac
     rhsReduced = osc.getReducedSystem
@@ -80,7 +80,7 @@ def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bo
 
     planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
     tresserPairs = sf.getTresserPairs(planeEqCoords, osc, ps)
-    cnctInfo = checkConnection(tresserPairs, ps, rhsInvPlane, jacInvPlane, idTransform, sf.pickBothSeparatrices, idListTransform, anyNumber, ps.sdlSinkPrxty, 1000)
+    cnctInfo = checkConnection(tresserPairs, ps, rhsInvPlane, jacInvPlane, idTransform, sf.pickBothSeparatrices, idListTransform, anyNumber, ps.sdlSinkPrxty, maxTime)
     newPairs = {(it['omega'], it['alpha']) for it in cnctInfo}
-    finalInfo = checkConnection(newPairs, ps, rhsReduced, jacReduced, embedBackTransform, sf.pickCirSeparatrix, cirTransform, lambda X: hasExactly(1, X), ps.sfocSddlPrxty, 1000)
+    finalInfo = checkConnection(newPairs, ps, rhsReduced, jacReduced, embedBackTransform, sf.pickCirSeparatrix, cirTransform, hasExactly(1), ps.sfocSddlPrxty, maxTime)
     return finalInfo
