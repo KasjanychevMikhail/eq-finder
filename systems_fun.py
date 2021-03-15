@@ -19,16 +19,15 @@ class EnvironmentParameters:
 
 class PrecisionSettings:
     def __init__(self, zeroImagPartEps, zeroRealPartEps, clustDistThreshold, separatrixShift, separatrix_rTol,
-                 separatrix_aTol, sdlSinkPrxty, sfocSddlPrxty):
+                 separatrix_aTol, sdlSinkPrxty, sfocSddlPrxty, marginBorder):
         assert zeroImagPartEps > 0, "Precision must be greater than zero!"
         assert zeroRealPartEps > 0, "Precision must be greater than zero!"
         assert clustDistThreshold > 0, "Precision must be greater than zero!"
-        assert separatrixShift  > 0, "Precision must be greater than zero!"
-        assert separatrix_rTol  > 0, "Precision must be greater than zero!"
-        assert separatrix_aTol  > 0, "Precision must be greater than zero!"
-        assert sdlSinkPrxty  > 0, "Precision must be greater than zero!"
-        assert sfocSddlPrxty  > 0, "Precision must be greater than zero!"
-
+        assert separatrixShift > 0, "Precision must be greater than zero!"
+        assert separatrix_rTol > 0, "Precision must be greater than zero!"
+        assert separatrix_aTol > 0, "Precision must be greater than zero!"
+        assert sdlSinkPrxty > 0, "Precision must be greater than zero!"
+        assert sfocSddlPrxty > 0, "Precision must be greater than zero!"
 
         self.zeroImagPartEps = zeroImagPartEps
         self.zeroRealPartEps = zeroRealPartEps
@@ -38,6 +37,7 @@ class PrecisionSettings:
         self.aTol = separatrix_aTol
         self.sdlSinkPrxty = sdlSinkPrxty
         self.sfocSddlPrxty = sfocSddlPrxty
+        self.marginBorder = marginBorder
 
     def isEigStable(self, Z):
         return Z.real < -self.zeroRealPartEps
@@ -56,7 +56,9 @@ STD_PRECISION = PrecisionSettings(zeroImagPartEps=1e-14,
                                   separatrix_rTol=1e-11,
                                   separatrix_aTol=1e-11,
                                   sdlSinkPrxty=1e-5,
-                                  sfocSddlPrxty=1e-4)
+                                  sfocSddlPrxty=1e-4,
+                                  marginBorder=1e-5
+                                  )
 
 
 class Equilibrium:
@@ -309,9 +311,10 @@ def embedPointBack(ptOnPlane):
     return [0] + ptOnPlane
 
 
-def isPtInUpperTriangle(ptOnPlane):
+def isPtInUpperTriangle(ptOnPlane, ps: PrecisionSettings):
     x, y = ptOnPlane
-    return (x <= y)
+    return (x >= ps.marginBorder) and (x + ps.marginBorder <= y) and (y <= 2 * np.pi - ps.marginBorder)
+
 
 
 def isStable2DFocus(eq, ps: PrecisionSettings):
@@ -347,7 +350,7 @@ def getTresserPairs(EqList, rhs, ps: PrecisionSettings):
         ptOnInvPlane = eq.coordinates
         ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
         eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
-        if (isPtInUpperTriangle(ptOnInvPlane)):
+        if (isPtInUpperTriangle(ptOnInvPlane, ps)):
             if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
                 sadFocs.append((eq, eqOnPlaneIn3D))
             elif (is2DSaddle(eq, ps) and is3DSaddleWith1dU(eqOnPlaneIn3D, ps)):
