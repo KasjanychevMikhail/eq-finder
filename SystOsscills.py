@@ -51,7 +51,7 @@ class FourBiharmonicPhaseOscillators:
         
         
         return (
-            2*(-np.cos(x + self.paramA) + 2*self.paramR * np.cos(2 * x + self.paramB)) +
+            (-np.cos(x + self.paramA) + 2*self.paramR * np.cos(2 * x + self.paramB)) +
                 
             (-np.cos(x-y + self.paramA) + 2*self.paramR * np.cos(2 * (x-y) + self.paramB))+
                 

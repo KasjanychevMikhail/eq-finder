@@ -84,3 +84,11 @@ def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bo
     newPairs = {(it['omega'], it['alpha']) for it in cnctInfo}
     finalInfo = checkConnection(newPairs, ps, rhsReduced, jacReduced, embedBackTransform, sf.pickCirSeparatrix, cirTransform, hasExactly(1), ps.sfocSddlPrxty, maxTime)
     return finalInfo
+
+def checkTargetHeteroclinicInInterval(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, maxTime, lowerLimit):
+    info = checkTargetHeteroclinic(osc, borders, bounds, eqFinder, ps, maxTime)
+    finalInfo = []
+    for dic in info:
+        if dic['dist'] > lowerLimit:
+            finalInfo.append(dic)
+    return finalInfo

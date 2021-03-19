@@ -56,8 +56,8 @@ STD_PRECISION = PrecisionSettings(zeroImagPartEps=1e-14,
                                   separatrix_rTol=1e-11,
                                   separatrix_aTol=1e-11,
                                   sdlSinkPrxty=1e-5,
-                                  sfocSddlPrxty=1e-4,
-                                  marginBorder=1e-5
+                                  sfocSddlPrxty=1e-2,
+                                  marginBorder=0
                                   )
 
 
