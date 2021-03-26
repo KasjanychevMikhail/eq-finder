@@ -40,25 +40,25 @@ class FourBiharmonicPhaseOscillators:
         return (2*(-np.cos(x + self.paramA) + 2*self.paramR * np.cos(2 * x + self.paramB)) +
                 (-np.cos(x-y + self.paramA) + 2*self.paramR * np.cos(2 * (x-y) + self.paramB)) -
                 (np.cos((-x) + self.paramA) - 2*self.paramR * np.cos(2 * (-x) + self.paramB))
-               )
+               )/4
     def NotDiagComponentJac(self, x,y):
         
         return ((np.cos(x-y + self.paramA) - 2*self.paramR * np.cos(2 * (x-y) + self.paramB)) -
                 (np.cos((-y) + self.paramA) - 2*self.paramR * np.cos(2 * (-y) + self.paramB))
-               )
+               )/4
     
     def DiagComponentJac3d(self, x,y,z):
         
         
         return (
-            2*(-np.cos(x + self.paramA) + 2*self.paramR * np.cos(2 * x + self.paramB)) +
+            (-np.cos(x + self.paramA) + 2*self.paramR * np.cos(2 * x + self.paramB)) +
                 
             (-np.cos(x-y + self.paramA) + 2*self.paramR * np.cos(2 * (x-y) + self.paramB))+
                 
             (-np.cos(x-z + self.paramA) + 2*self.paramR * np.cos(2 * (x-z) + self.paramB))-
                 
             (np.cos((-x) + self.paramA) - 2*self.paramR * np.cos(2 * (-x) + self.paramB))
-               )    
+               )/4
         
     def getRestrictionJac(self,X):  
         x,y=X       
