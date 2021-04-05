@@ -53,5 +53,5 @@ def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInte
 
     plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('RdBu'))
     plt.colorbar()
-    plt.savefig("{}{}.txt".format(pathToDir,imageName))
+    plt.savefig("{}{}".format(pathToDir,imageName))
 
