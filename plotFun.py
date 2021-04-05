@@ -37,7 +37,7 @@ def prepareHeteroclinicsData(data):
 
     return HeteroclinicsData
 
-def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, imageName):
+def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, pathToDir, imageName):
     """
     (i, j, a, b, dist)
     """
@@ -53,5 +53,5 @@ def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInte
 
     plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('RdBu'))
     plt.colorbar()
-    plt.savefig(imageName)
+    plt.savefig("{}{}.txt".format(pathToDir,imageName))
 
