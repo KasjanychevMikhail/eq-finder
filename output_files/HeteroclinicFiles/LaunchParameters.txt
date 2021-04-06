@@ -1,0 +1,22 @@
+{
+'NumericTolerance':
+{'zeroImagPartEps': 1e-14,
+'zeroRealPartEps': 1e-14,
+'clustDistThreshold': 1e-5,
+'marginBorder': 0.,},
+'SeparatrixComputing':
+{'separatrixShift': 1e-5,
+'separatrix_rTol': 1e-11,
+'separatrix_aTol': 1e-11,},
+'ConnectionProximity':
+{'sdlSinkPrxty': 1e-5,
+'sfocSddlPrxty': 1e-2,},
+'Parameters':
+{'rval': 1.,
+'a_min': 4.586725274241098-0.1,
+'a_max': 4.586725274241098+0.1,
+'a_N': 31,
+'b_min': 5.005604294719737-0.1,
+'b_max': 5.005604294719737+0.1,
+'b_N': 31,},
+}
