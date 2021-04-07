@@ -22,8 +22,7 @@ def workerCheckTarget(params, pset: sf.PrecisionSettings):
     return i, j, a, b, result
 
 if __name__ == "__main__":
-    sys.argv
-    f = open("{}{}.txt".format(sys.argv[1],sys.argv[2]), 'r')
+    f = open("{}{}.txt".format(sys.argv[1], sys.argv[2]), 'r')
     d = eval(f.read())
     N, M, alphas, betas = su.getGrid(d)
     ps = su.getPrecisionSettings(d)
