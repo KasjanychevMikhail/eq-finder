@@ -93,29 +93,19 @@ def plotTrajProec(osc,startPt,ps,maxTime, pathToDir, imageName,a,b ):
 
     fig, axs = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(30, 10))
 
-    axs[0].scatter(x[0], y[0], s=40, c='g', label='Начало')
-    axs[0].scatter(x[-1], y[-1], s=40, c='r', label='Конец')
-    axs[0].set_xlim(0, 2 * np.pi)
-    axs[0].set_ylim(0, 2 * np.pi)
-    axs[0].plot(x, y)
-    axs[0].set_xlabel(r'$\phi_1$')
-    axs[0].set_ylabel(r'$\phi_2$')
+    traj =(x,y,z)
+    ParamsTraj = [(0,1,r'$\phi_1$',r'$\phi_2$'),(0,2,r'$\phi_1$',r'$\phi_3$'),(1,2,r'$\phi_2$',r'$\phi_3$')]
+
+    for i,params in enumerate(ParamsTraj):
+        IndxFirstCoord, IndxSecondCoord, firstLab, secondLab = params
+        axs[i].scatter(traj[IndxFirstCoord][0], traj[IndxSecondCoord][0], s=40, c='g', label='Начало')
+        axs[i].scatter(traj[IndxFirstCoord][-1], traj[IndxSecondCoord][-1], s=40, c='r', label='Конец')
+        axs[i].set_xlim(0, 2 * np.pi)
+        axs[i].set_ylim(0, 2 * np.pi)
+        axs[i].plot(traj[IndxFirstCoord], traj[IndxSecondCoord])
+        axs[i].set_xlabel(firstLab)
+        axs[i].set_ylabel(secondLab)
+
     axs[0].set_title(r'$\alpha ={}, \beta ={}$'.format(a,b))
     axs[0].legend()
-
-    axs[1].scatter(x[0], z[0], s=40, c='g', label='Начало')
-    axs[1].scatter(x[-1], z[-1], s=40, c='r', label='Конец')
-    axs[1].set_xlim(0, 2 * np.pi)
-    axs[1].set_ylim(0, 2 * np.pi)
-    axs[1].plot(x, z)
-    axs[1].set_xlabel(r'$\phi_1$')
-    axs[1].set_ylabel(r'$\phi_3$')
-
-    axs[2].scatter(y[0], z[0], s=40, c='g', label='Начало')
-    axs[2].scatter(y[-1], z[-1], s=40, c='r', label='Конец')
-    axs[2].set_xlim(0, 2 * np.pi)
-    axs[2].set_ylim(0, 2 * np.pi)
-    axs[2].plot(y, z)
-    axs[2].set_xlabel(r'$\phi_2$')
-    axs[2].set_ylabel(r'$\phi_3$')
     plt.savefig("{}{}".format(pathToDir,imageName))
