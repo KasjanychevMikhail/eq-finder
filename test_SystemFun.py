@@ -1,12 +1,15 @@
 import systems_fun as sf
 import numpy as np
 import pytest
-from sklearn.cluster import AgglomerativeClustering
 import findTHeteroclinic as fth
 
 @pytest.fixture
 def stdPS():
     return sf.STD_PRECISION
+
+@pytest.fixture
+def stdPROX():
+    return sf.STD_PROXIMITY
 
 class TestDescribeEqType:
     def test_saddle(self, stdPS):
@@ -272,6 +275,6 @@ def duffingSetup():
 
 def test_Duffing(duffingSetup):
     ob, rightSep, pairsToCheck = duffingSetup
-    out = fth.checkSeparatrixConnection(pairsToCheck, fth.sf.STD_PRECISION, ob.rhs, ob.rhsJac,
+    out = fth.checkSeparatrixConnection(pairsToCheck, fth.sf.STD_PRECISION, fth.sf.STD_PROXIMITY, ob.rhs, ob.rhsJac,
                               fth.idTransform, rightSep, fth.idListTransform, fth.hasExactly(1), 1e-5, 1000.)
     assert out[0]['dist'] < 1e-5

@@ -18,8 +18,11 @@ def getPrecisionSettings(dictConfig):
                               separatrixShift=dictConfig['SeparatrixComputing']['separatrixShift'],
                               separatrix_rTol=dictConfig['SeparatrixComputing']['separatrix_rTol'],
                               separatrix_aTol=dictConfig['SeparatrixComputing']['separatrix_aTol'],
-                              sdlSinkPrxty=dictConfig['ConnectionProximity']['sdlSinkPrxty'],
-                              sfocSddlPrxty=dictConfig['ConnectionProximity']['sfocSddlPrxty'],
                               marginBorder=dictConfig['NumericTolerance']['marginBorder']
                               )
     return ps
+
+def getProximitySettings(dictConfig):
+    prox = sf.ProximitySettings(toSinkPrxty = dictConfig['ConnectionProximity']['toSinkPrxty'],
+                                toSddlPrxty = dictConfig['ConnectionProximity']['toSddlPrxty'])
+    return prox

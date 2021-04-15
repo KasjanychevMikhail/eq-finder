@@ -19,15 +19,13 @@ class EnvironmentParameters:
 
 class PrecisionSettings:
     def __init__(self, zeroImagPartEps, zeroRealPartEps, clustDistThreshold, separatrixShift, separatrix_rTol,
-                 separatrix_aTol, sdlSinkPrxty, sfocSddlPrxty, marginBorder):
+                 separatrix_aTol, marginBorder):
         assert zeroImagPartEps > 0, "Precision must be greater than zero!"
         assert zeroRealPartEps > 0, "Precision must be greater than zero!"
         assert clustDistThreshold > 0, "Precision must be greater than zero!"
         assert separatrixShift > 0, "Precision must be greater than zero!"
         assert separatrix_rTol > 0, "Precision must be greater than zero!"
         assert separatrix_aTol > 0, "Precision must be greater than zero!"
-        assert sdlSinkPrxty > 0, "Precision must be greater than zero!"
-        assert sfocSddlPrxty > 0, "Precision must be greater than zero!"
 
         self.zeroImagPartEps = zeroImagPartEps
         self.zeroRealPartEps = zeroRealPartEps
@@ -35,8 +33,6 @@ class PrecisionSettings:
         self.separatrixShift = separatrixShift
         self.rTol = separatrix_rTol
         self.aTol = separatrix_aTol
-        self.sdlSinkPrxty = sdlSinkPrxty
-        self.sfocSddlPrxty = sfocSddlPrxty
         self.marginBorder = marginBorder
 
     def isEigStable(self, Z):
@@ -55,11 +51,19 @@ STD_PRECISION = PrecisionSettings(zeroImagPartEps=1e-14,
                                   separatrixShift=1e-5,
                                   separatrix_rTol=1e-11,
                                   separatrix_aTol=1e-11,
-                                  sdlSinkPrxty=1e-5,
-                                  sfocSddlPrxty=1e-2,
                                   marginBorder=0
                                   )
 
+class ProximitySettings:
+    def __init__(self, toSinkPrxty, toSddlPrxty):
+        assert toSinkPrxty > 0, "Precision must be greater than zero!"
+        assert toSddlPrxty > 0, "Precision must be greater than zero!"
+        self.toSinkPrxty = toSinkPrxty
+        self.toSddlPrxty = toSddlPrxty
+
+STD_PROXIMITY = ProximitySettings(toSinkPrxty=1e-5,
+                                  toSddlPrxty=1e-2
+                                  )
 
 class Equilibrium:
     def __init__(self, coordinates, eigenvalues, eigvectors):
@@ -323,16 +327,14 @@ def isStable2DFocus(eq, ps: PrecisionSettings):
 def isStable2DNode(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 0, 0, 0]
 
-def is3DSaddleFocusWith1dU(eq, ps: PrecisionSettings):
-    return eq.getEqType(ps) == [2, 0, 1, 1, 0]
-
 def is2DSaddle(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [1, 0, 1, 0, 0]
 
+def is3DSaddleFocusWith1dU(eq, ps: PrecisionSettings):
+    return eq.getEqType(ps) == [2, 0, 1, 1, 0]
 
 def is3DSaddleWith1dU(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 1, 0, 0]
-
 
 def has1DUnstable(eq, ps: PrecisionSettings):
     return eq.getEqType(ps)[2] == 1
@@ -429,19 +431,31 @@ def computeSeparatrices(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, co
         separatrices.append(np.transpose(sol.y))
     return separatrices
 
-def constructDistEvent(x0, ps: PrecisionSettings):
-    evt = lambda t, X: distance.euclidean(x0,X) - ps.sfocSddlPrxty
+def constructDistEvent(x0, eps):
+    evt = lambda t, X: distance.euclidean(x0,X) - eps
     return evt
 
-def createListOfEvents(sadFoc, eqList, ps: PrecisionSettings):
+def isSaddle(eq, ps: PrecisionSettings):
+    eqType = eq.getEqType(ps)
+    return eqType[0] > 0 and eqType[1]==0 and eqType[2] > 0
+
+def isSink(eq, ps: PrecisionSettings):
+    eqType = eq.getEqType(ps)
+    return eqType[1] == 0 and eqType[2] == 0
+
+def createListOfEvents(startEq, eqList, ps: PrecisionSettings, proxs: ProximitySettings):
     listEvents = []
     for eq in eqList:
-        coordList = generateSymmetricPoints(eq.coordinates)
-        if eq.coordinates == sadFoc.coordinates:
-            coordList = coordList[1:]
-        for coords in coordList:
-            event = constructDistEvent(coords, ps)
-            event.terminal = True
-            event.direction = 0
-            listEvents.append(event)
+        if isSaddle(eq, ps) or isSink(eq, ps):
+            coordList = generateSymmetricPoints(eq.coordinates)
+            if eq.coordinates == startEq.coordinates:
+                coordList = coordList[1:]
+            for coords in coordList:
+                if isSaddle(eq, ps):
+                    event = constructDistEvent(coords, proxs.toSddlPrxty)
+                elif isSink(eq, ps):
+                    event = constructDistEvent(coords, proxs.toSinkPrxty)
+                event.terminal = True
+                event.direction = 0
+                listEvents.append(event)
     return listEvents

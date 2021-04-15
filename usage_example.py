@@ -30,7 +30,7 @@ for i,a in enumerate(alphas):
         ud = [0.5,a,b,1]
         osc = a4d.FourBiharmonicPhaseOscillators(ud[0], ud[1], ud[2], ud[3])
         eqf = sf.ShgoEqFinder(300, 30, 1e-10)
-        ret = fth.checkTargetHeteroclinic(osc, bordersEq, bounds, eqf, sf.STD_PRECISION, 1000.)
+        ret = fth.checkTargetHeteroclinic(osc, bordersEq, bounds, eqf, sf.STD_PRECISION, sf.STD_PROXIMITY, 1000.)
 
 end = time.time()
 print("Took {}s".format(end-start))
