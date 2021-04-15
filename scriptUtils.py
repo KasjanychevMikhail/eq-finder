@@ -7,7 +7,9 @@ def getGrid(dictConfig):
 
     alphas = np.linspace(dictConfig['Parameters']['a_min'], dictConfig['Parameters']['a_max'], N)
     betas = np.linspace(dictConfig['Parameters']['b_min'], dictConfig['Parameters']['b_max'], M)
-    return (N, M, alphas, betas)
+
+    r = dictConfig['Parameters']['rval']
+    return ( N, M, alphas, betas, r)
 
 def getPrecisionSettings(dictConfig):
     ps = sf.PrecisionSettings(zeroImagPartEps=dictConfig['NumericTolerance']['zeroImagPartEps'],

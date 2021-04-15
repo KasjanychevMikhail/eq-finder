@@ -39,7 +39,7 @@ def prepareHeteroclinicsData(data):
 
     return HeteroclinicsData
 
-def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, pathToDir, imageName):
+def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, thirdParamVal, pathToDir, imageName):
     """
     (i, j, a, b, dist)
     """
@@ -55,6 +55,9 @@ def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInte
 
     plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('RdBu'))
     plt.colorbar()
+    plt.xlabel(r'$ \alpha $')
+    plt.ylabel(r'$ \beta $')
+    plt.title("r={}".format(thirdParamVal))
     plt.savefig("{}{}".format(pathToDir,imageName))
 
 def plotTresserPairs(osc, bounds, bordersEq, ps, pathToDir, imageName):
@@ -109,3 +112,57 @@ def plotTrajProec(osc,startPt,ps,maxTime, pathToDir, imageName,a,b ):
     axs[0].set_title(r'$\alpha ={}, \beta ={}$'.format(a,b))
     axs[0].legend()
     plt.savefig("{}{}".format(pathToDir,imageName))
+
+def plotLyapunovMap(LyapunovData, firstParamInterval, secondParamInterval, thirdParamVal, pathToDir,
+                    imageName):
+    """        (i, j, val)
+    """
+    N = len(firstParamInterval)
+    M = len(secondParamInterval)
+
+    colorGridDist = np.ones((M, N))
+    colorGridDist = 2*colorGridDist
+    sortedData = sorted(LyapunovData, key=lambda X: (X[2]), reverse=True)
+    for data in sortedData:
+        i = int(data[0])
+        j = int(data[1])
+        #if data[2] > 1e-2:
+        #    colorGridDist[j][i] = 1
+        colorGridDist[j][i] = np.log10(data[2])
+
+
+    plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('afmhot'))
+    plt.colorbar()
+    plt.xlabel(r'$ \alpha $')
+    plt.ylabel(r'$ \beta $')
+    plt.title("r={}".format(thirdParamVal))
+    plt.savefig("{}{}".format(pathToDir, imageName))
+
+def prepareStartPtsData(data):
+    """
+        Expects elements to be tuples in form (i, j, a, b, result)
+        """
+    StartPtsData=[]
+    sortedData = sorted(data, key=lambda X: (X[0], X[1]))
+    for tup in sortedData:
+        if tup[4]:
+            for xyz in tup[4]:
+                Xpt,Ypt,Zpt = xyz
+                StartPtsData.append((tup[0], tup[1], tup[2], tup[3], Xpt,Ypt,Zpt))
+
+    return StartPtsData
+
+def saveStartPtsDataAsTxt(prepStartPtsData, pathToDir, fileName ):
+    if prepStartPtsData:
+        headerStr = (
+                'i  j  alpha  beta startPtX  startPtY  startPtZ\n' +
+                '0  1  2      3    4         5         6')
+        fmtList = ['%2u',
+                   '%2u',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',]
+        np.savetxt("{}{}.txt".format(pathToDir,fileName), prepStartPtsData, header=headerStr,
+                   fmt=fmtList)

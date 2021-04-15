@@ -320,10 +320,11 @@ def isPtInUpperTriangle(ptOnPlane, ps: PrecisionSettings):
 def isStable2DFocus(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 0, 1, 0]
 
+def isStable2DNode(eq, ps: PrecisionSettings):
+    return eq.getEqType(ps) == [2, 0, 0, 0, 0]
 
 def is3DSaddleFocusWith1dU(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 1, 1, 0]
-
 
 def is2DSaddle(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [1, 0, 1, 0, 0]
@@ -382,6 +383,20 @@ def getInitPointsOnUnstable1DSeparatrix(eq, condition, ps: PrecisionSettings):
     else:
         raise ValueError('Not a saddle with 1d unstable manifold!')
 
+def get1dUnstEqs(EqList, rhs, ps: PrecisionSettings, OnlySadFoci):
+    list1dUnstEqs = []
+    for eq in EqList:
+        ptOnInvPlane = eq.coordinates
+        ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
+        eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
+        if (isPtInUpperTriangle(ptOnInvPlane, ps)):
+            if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
+                list1dUnstEqs.append(eq)
+            if not OnlySadFoci:
+                if(isStable2DNode(eq, ps) and is3DSaddleWith1dU(eqOnPlaneIn3D, ps)):
+                    list1dUnstEqs.append(eq)
+
+    return list1dUnstEqs
 
 def pickBothSeparatrices(ptCoord, eqCoord):
     return True

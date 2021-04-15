@@ -5,7 +5,7 @@ import SystOsscills as a4d
 from scipy.spatial import distance
 
 
-def checkConnection(pairsToCheck, ps: sf.PrecisionSettings, rhs, rhsJac, phSpaceTransformer, sepCondition, eqTransformer, sepNumCondition, sepProximity, maxTime):
+def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, rhs, rhsJac, phSpaceTransformer, sepCondition, eqTransformer, sepNumCondition, sepProximity, maxTime):
     """
     Accepts pairsToCheck — a list of pairs of Equilibria — and checks if there is
     an approximate connection between them. First equilibrium of pair
@@ -80,9 +80,9 @@ def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bo
 
     planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
     tresserPairs = sf.getTresserPairs(planeEqCoords, osc, ps)
-    cnctInfo = checkConnection(tresserPairs, ps, rhsInvPlane, jacInvPlane, idTransform, sf.pickBothSeparatrices, idListTransform, anyNumber, ps.sdlSinkPrxty, maxTime)
+    cnctInfo = checkSeparatrixConnection(tresserPairs, ps, rhsInvPlane, jacInvPlane, idTransform, sf.pickBothSeparatrices, idListTransform, anyNumber, ps.sdlSinkPrxty, maxTime)
     newPairs = {(it['omega'], it['alpha']) for it in cnctInfo}
-    finalInfo = checkConnection(newPairs, ps, rhsReduced, jacReduced, embedBackTransform, sf.pickCirSeparatrix, cirTransform, hasExactly(1), ps.sfocSddlPrxty, maxTime)
+    finalInfo = checkSeparatrixConnection(newPairs, ps, rhsReduced, jacReduced, embedBackTransform, sf.pickCirSeparatrix, cirTransform, hasExactly(1), ps.sfocSddlPrxty, maxTime)
     return finalInfo
 
 def checkTargetHeteroclinicInInterval(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, maxTime, lowerLimit):
@@ -92,3 +92,19 @@ def checkTargetHeteroclinicInInterval(osc: a4d.FourBiharmonicPhaseOscillators, b
         if dic['dist'] > lowerLimit:
             finalInfo.append(dic)
     return finalInfo
+
+def getStartPtsForLyapVals(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, OnlySadFoci):
+    rhsInvPlane = osc.getRestriction
+    jacInvPlane = osc.getRestrictionJac
+    planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
+    ListEqs1dU = sf.get1dUnstEqs(planeEqCoords, osc, ps, OnlySadFoci)
+    outputInfo = []
+
+    for eq in ListEqs1dU:
+        ptOnInvPlane = eq.coordinates
+        ptOnPlaneIn3D = sf.embedPointBack(ptOnInvPlane)
+        eqOnPlaneIn3D = sf.getEquilibriumInfo(ptOnPlaneIn3D, osc.getReducedSystemJac)
+        startPts = sf.getInitPointsOnUnstable1DSeparatrix(eqOnPlaneIn3D,sf.pickCirSeparatrix, ps)[0]
+
+        outputInfo.append(startPts)
+    return outputInfo

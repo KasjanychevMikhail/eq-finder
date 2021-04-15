@@ -24,14 +24,14 @@ def workerCheckTarget(params, pset: sf.PrecisionSettings):
 if __name__ == "__main__":
     f = open("{}{}.txt".format(sys.argv[1], sys.argv[2]), 'r')
     d = eval(f.read())
-    N, M, alphas, betas = su.getGrid(d)
+    N, M, alphas, betas, r = su.getGrid(d)
     ps = su.getPrecisionSettings(d)
     pool = mp.Pool(mp.cpu_count())
     start = time.time()
     ret = pool.map(partial(workerCheckTarget, pset = ps), itls.product(enumerate(alphas), enumerate(betas)))
     end = time.time()
     pool.close()
-    pf.plotHeteroclinicsData(pf.prepareHeteroclinicsData(ret), alphas, betas, './output_files/HeteroclinicFiles/'
-                             , "Heteroclinic{}x{}".format(N,M))
-    pf.saveHeteroclinicsDataAsTxt(pf.prepareHeteroclinicsData(ret),'./output_files/HeteroclinicFiles/'
-                                  , "Heteroclinic{}x{}".format(N,M))
+    pf.plotHeteroclinicsData(pf.prepareHeteroclinicsData(ret), alphas, betas, r, './output_files/HeteroclinicFiles/'
+                             , "Heteroclinic{}x{}".format(N, M))
+    pf.saveHeteroclinicsDataAsTxt(pf.prepareHeteroclinicsData(ret), './output_files/HeteroclinicFiles/'
+                                  , "Heteroclinic{}x{}".format(N, M))
