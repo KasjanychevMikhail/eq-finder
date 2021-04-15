@@ -5,7 +5,7 @@ import SystOsscills as a4d
 from scipy.spatial import distance
 
 
-def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, rhs, rhsJac, phSpaceTransformer, sepCondition, eqTransformer, sepNumCondition, sepProximity, maxTime):
+def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, rhs, rhsJac, phSpaceTransformer, sepCondition, eqTransformer, sepNumCondition, sepProximity, maxTime, withEvents = False, listEqCoords3D = None):
     """
     Accepts pairsToCheck — a list of pairs of Equilibria — and checks if there is
     an approximate connection between them. First equilibrium of pair
@@ -18,11 +18,15 @@ def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, rhs, rhsJa
 
     outputInfo = []
 
+    events = None
+
     for alphaEq, omegaEqs in grpByAlphaEq.items():
         alphaEqTr = phSpaceTransformer(alphaEq, rhsJac)
         omegaEqsTr = [phSpaceTransformer(oEq, rhsJac) for oEq in omegaEqs]
         fullOmegaEqsTr = itls.chain.from_iterable([eqTransformer(oEq, rhsJac) for oEq in omegaEqsTr])
-        separatrices = sf.computeSeparatrices(alphaEqTr, rhs, ps, maxTime, sepCondition)
+        if withEvents:
+            events = sf.createListOfEvents(alphaEqTr, listEqCoords3D, ps)
+        separatrices = sf.computeSeparatrices(alphaEqTr, rhs, ps, maxTime, sepCondition, events)
 
         if not sepNumCondition(separatrices):
             raise ValueError('Assumption on the number of separatrices is not satisfied')
@@ -79,10 +83,12 @@ def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bo
     jacReduced = osc.getReducedSystemJac
 
     planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
+    eqCoords3D = sf.listEqOnInvPlaneTo3D(planeEqCoords, osc)
     tresserPairs = sf.getTresserPairs(planeEqCoords, osc, ps)
+
     cnctInfo = checkSeparatrixConnection(tresserPairs, ps, rhsInvPlane, jacInvPlane, idTransform, sf.pickBothSeparatrices, idListTransform, anyNumber, ps.sdlSinkPrxty, maxTime)
     newPairs = {(it['omega'], it['alpha']) for it in cnctInfo}
-    finalInfo = checkSeparatrixConnection(newPairs, ps, rhsReduced, jacReduced, embedBackTransform, sf.pickCirSeparatrix, cirTransform, hasExactly(1), ps.sfocSddlPrxty, maxTime)
+    finalInfo = checkSeparatrixConnection(newPairs, ps, rhsReduced, jacReduced, embedBackTransform, sf.pickCirSeparatrix, cirTransform, hasExactly(1), ps.sfocSddlPrxty, maxTime, withEvents = True, listEqCoords3D = eqCoords3D)
     return finalInfo
 
 def checkTargetHeteroclinicInInterval(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, maxTime, lowerLimit):

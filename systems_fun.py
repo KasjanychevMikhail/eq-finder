@@ -7,7 +7,7 @@ from scipy import optimize
 from numpy import linalg as LA
 from sklearn.cluster import AgglomerativeClustering
 from scipy.integrate import solve_ivp
-
+from scipy.spatial import distance
 
 class EnvironmentParameters:
     def __init__(self, pathToOutputDirectory, outputStamp, imageStamp):
@@ -337,8 +337,19 @@ def is3DSaddleWith1dU(eq, ps: PrecisionSettings):
 def has1DUnstable(eq, ps: PrecisionSettings):
     return eq.getEqType(ps)[2] == 1
 
+def eqOnInvPlaneTo3D(eq, rhs):
+    ptOnInvPlane = eq.coordinates
+    ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
+    eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
+    return eqOnPlaneIn3D
 
-def getTresserPairs(EqList, rhs, ps: PrecisionSettings):
+def listEqOnInvPlaneTo3D(listEq, rhs):
+    listEq3D = []
+    for eq in listEq:
+        listEq3D.append(eqOnInvPlaneTo3D(eq, rhs))
+    return listEq3D
+
+def getTresserPairs(eqList, rhs, ps: PrecisionSettings):
     '''
     Accepts EqList — a list of all Equilibria on invariant plane.
     Returns pairs of Equilibria that might be organized in
@@ -347,10 +358,9 @@ def getTresserPairs(EqList, rhs, ps: PrecisionSettings):
     '''
     sadFocs = []
     saddles = []
-    for eq in EqList:
+    for eq in eqList:
         ptOnInvPlane = eq.coordinates
-        ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
-        eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
+        eqOnPlaneIn3D = eqOnInvPlaneTo3D(eq, rhs)
         if (isPtInUpperTriangle(ptOnInvPlane, ps)):
             if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
                 sadFocs.append((eq, eqOnPlaneIn3D))
@@ -383,12 +393,11 @@ def getInitPointsOnUnstable1DSeparatrix(eq, condition, ps: PrecisionSettings):
     else:
         raise ValueError('Not a saddle with 1d unstable manifold!')
 
-def get1dUnstEqs(EqList, rhs, ps: PrecisionSettings, OnlySadFoci):
+def get1dUnstEqs(eqList, rhs, ps: PrecisionSettings, OnlySadFoci):
     list1dUnstEqs = []
-    for eq in EqList:
+    for eq in eqList:
         ptOnInvPlane = eq.coordinates
-        ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
-        eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
+        eqOnPlaneIn3D = eqOnInvPlaneTo3D(eq, rhs)
         if (isPtInUpperTriangle(ptOnInvPlane, ps)):
             if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
                 list1dUnstEqs.append(eq)
@@ -410,11 +419,29 @@ def isInCIR(pt):
 def pickCirSeparatrix(ptCoord, eqCoord):
     return isInCIR(ptCoord)
 
-def computeSeparatrices(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, condition):
+def computeSeparatrices(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, condition, listEvents = None):
     startPts = getInitPointsOnUnstable1DSeparatrix(eq, condition, ps)
     rhs_vec = lambda t, X: rhs(X)
     separatrices = []
     for startPt in startPts:
-        sol = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol=ps.rTol, atol=ps.aTol, dense_output=True)
+        sol = solve_ivp(rhs_vec, [0, maxTime], startPt, events=listEvents, rtol=ps.rTol, atol=ps.aTol,
+                        dense_output=True)
         separatrices.append(np.transpose(sol.y))
     return separatrices
+
+def constructDistEvent(x0, ps: PrecisionSettings):
+    evt = lambda t, X: distance.euclidean(x0,X) - ps.sfocSddlPrxty
+    return evt
+
+def createListOfEvents(sadFoc, eqList, ps: PrecisionSettings):
+    listEvents = []
+    for eq in eqList:
+        coordList = generateSymmetricPoints(eq.coordinates)
+        if eq.coordinates == sadFoc.coordinates:
+            coordList = coordList[1:]
+        for coords in coordList:
+            event = constructDistEvent(coords, ps)
+            event.terminal = True
+            event.direction = 0
+            listEvents.append(event)
+    return listEvents

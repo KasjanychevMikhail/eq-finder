@@ -272,6 +272,6 @@ def duffingSetup():
 
 def test_Duffing(duffingSetup):
     ob, rightSep, pairsToCheck = duffingSetup
-    out = fth.checkConnection(pairsToCheck, fth.sf.STD_PRECISION, ob.rhs, ob.rhsJac,
+    out = fth.checkSeparatrixConnection(pairsToCheck, fth.sf.STD_PRECISION, ob.rhs, ob.rhsJac,
                               fth.idTransform, rightSep, fth.idListTransform, fth.hasExactly(1), 1e-5, 1000.)
     assert out[0]['dist'] < 1e-5
