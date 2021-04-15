@@ -9,14 +9,14 @@
 'separatrix_rTol': 1e-11,
 'separatrix_aTol': 1e-11,},
 'ConnectionProximity':
-{'sdlSinkPrxty': 1e-5,
-'sfocSddlPrxty': 1e-2,},
+{'toSinkPrxty': 1e-5,
+'toSddlPrxty': 1e-2,},
 'Parameters':
 {'rval': 1.,
-'a_min': 4.586725274241098-0.1,
-'a_max': 4.586725274241098+0.1,
-'a_N': 11,
-'b_min': 5.005604294719737-0.1,
-'b_max': 5.005604294719737+0.1,
-'b_N': 11,},
+'a_min': -np.pi,
+'a_max': np.pi,
+'a_N': 13,
+'b_min': -np.pi,
+'b_max': np.pi,
+'b_N': 13,},
 }

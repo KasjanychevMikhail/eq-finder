@@ -9,8 +9,8 @@
 'separatrix_rTol': 1e-11,
 'separatrix_aTol': 1e-11,},
 'ConnectionProximity':
-{'sdlSinkPrxty': 1e-5,
-'sfocSddlPrxty': 1e-2,},
+{'toSinkPrxty': 1e-5,
+'toSddlPrxty': 1e-2,},
 'InputFile':
 {'NameOfFile': "Heteroclinic11x11",
 'PathToFile': "./output_files/HeteroclinicFiles/",
