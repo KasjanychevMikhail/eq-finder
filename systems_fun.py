@@ -339,16 +339,10 @@ def is3DSaddleWith1dU(eq, ps: PrecisionSettings):
 def has1DUnstable(eq, ps: PrecisionSettings):
     return eq.getEqType(ps)[2] == 1
 
-def eqOnInvPlaneTo3D(eq, rhs):
-    ptOnInvPlane = eq.coordinates
-    ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
-    eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
-    return eqOnPlaneIn3D
-
 def listEqOnInvPlaneTo3D(listEq, rhs):
     listEq3D = []
     for eq in listEq:
-        listEq3D.append(eqOnInvPlaneTo3D(eq, rhs))
+        listEq3D.append(embedBackTransform(eq, rhs.getReducedSystemJac))
     return listEq3D
 
 def getTresserPairs(eqList, rhs, ps: PrecisionSettings):
@@ -362,7 +356,7 @@ def getTresserPairs(eqList, rhs, ps: PrecisionSettings):
     saddles = []
     for eq in eqList:
         ptOnInvPlane = eq.coordinates
-        eqOnPlaneIn3D = eqOnInvPlaneTo3D(eq, rhs)
+        eqOnPlaneIn3D = embedBackTransform(eq, rhs.getReducedSystemJac)
         if (isPtInUpperTriangle(ptOnInvPlane, ps)):
             if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
                 sadFocs.append((eq, eqOnPlaneIn3D))
@@ -399,7 +393,7 @@ def get1dUnstEqs(eqList, rhs, ps: PrecisionSettings, OnlySadFoci):
     list1dUnstEqs = []
     for eq in eqList:
         ptOnInvPlane = eq.coordinates
-        eqOnPlaneIn3D = eqOnInvPlaneTo3D(eq, rhs)
+        eqOnPlaneIn3D  = embedBackTransform(eq, rhs.getReducedSystemJac)
         if (isPtInUpperTriangle(ptOnInvPlane, ps)):
             if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
                 list1dUnstEqs.append(eq)
@@ -459,3 +453,34 @@ def createListOfEvents(startEq, eqList, ps: PrecisionSettings, proxs: ProximityS
                 event.direction = 0
                 listEvents.append(event)
     return listEvents
+
+def idTransform(X, rhsJac):
+    """
+    Accepts an Equilibrium and returns it as is
+    """
+    return X
+
+def idListTransform(X, rhsJac):
+    """
+    Accepts an Equilibrium and returns it wrapped in list
+    """
+    return [X]
+
+def hasExactly(num):
+    return lambda seps: len(seps) == num
+
+def anyNumber(seps):
+    return True
+
+def embedBackTransform(X: Equilibrium, rhsJac):
+    """
+    Takes an Equilbrium from invariant plane
+    and reinterprets it as an Equilibrium
+    of reduced system
+    """
+    xNew = embedPointBack(X.coordinates)
+    return getEquilibriumInfo(xNew, rhsJac)
+
+def cirTransform(eq: Equilibrium, rhsJac):
+    coords = generateSymmetricPoints(eq.coordinates)
+    return [getEquilibriumInfo(cd, rhsJac) for cd in coords]

@@ -6,14 +6,15 @@ from scipy.integrate import solve_ivp
 
 def saveHeteroclinicsDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
     """
-    (i, j, a, b, dist)
+    (i, j, a, b, r, dist)
     """
     if HeteroclinicsData:
         headerStr = (
-                'i  j  alpha  beta  dist  startPtX  startPtY  startPtZ\n' +
-                '0  1  2      3     4     5         6         7')
+                'i  j  alpha  beta  r    dist startPtX  startPtY  startPtZ\n' +
+                '0  1  2      3     4    5    6         7         8')
         fmtList = ['%2u',
                    '%2u',
+                   '%+18.15f',
                    '%+18.15f',
                    '%+18.15f',
                    '%+18.15f',
@@ -23,7 +24,7 @@ def saveHeteroclinicsDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
         np.savetxt("{}{}.txt".format(pathToDir,fileName), HeteroclinicsData, header=headerStr,
                    fmt=fmtList)
 
-def prepareHeteroclinicsData(data):
+def prepareHeteroclinicsData(data, r):
     """
         Accepts result of running heteroclinics analysis on grid.
         Expects elements to be tuples in form (i, j, a, b, result)
@@ -35,13 +36,13 @@ def prepareHeteroclinicsData(data):
             for dt in d[4]:
             #dict = min(d[4], key=lambda i: i['dist'])
                 Xpt,Ypt,Zpt = dt['stPt']
-                HeteroclinicsData.append((d[0], d[1], d[2], d[3], dt['dist'], Xpt,Ypt,Zpt))
+                HeteroclinicsData.append((d[0], d[1], d[2], d[3], r, dt['dist'], Xpt, Ypt, Zpt))
 
     return HeteroclinicsData
 
 def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, thirdParamVal, pathToDir, imageName):
     """
-    (i, j, a, b, dist)
+    (i, j, a, b, r, dist)
     """
     N = len(firstParamInterval)
     M = len(secondParamInterval)
@@ -53,7 +54,7 @@ def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInte
         j = data[1]
         colorGridDist[j][i] = 1
 
-    plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('RdBu'))
+    plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('binary'))
     plt.colorbar()
     plt.xlabel(r'$ \alpha $')
     plt.ylabel(r'$ \beta $')
@@ -86,7 +87,7 @@ def plotTresserPairs(osc, bounds, bordersEq, ps, pathToDir, imageName):
     plt.legend([p1, p2], ["Седло", "Седло-фокус"])
     plt.savefig("{}{}".format(pathToDir, imageName))
 
-def plotTrajProec(osc,startPt,ps,maxTime, pathToDir, imageName,a,b ):
+def plotTrajProec(osc, startPt, ps, maxTime, pathToDir, imageName, a, b):
     rhs_vec = lambda t, X: osc(X)
     sep = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol=ps.rTol, atol=ps.aTol, dense_output=True)
 
@@ -120,27 +121,26 @@ def plotLyapunovMap(LyapunovData, firstParamInterval, secondParamInterval, third
     N = len(firstParamInterval)
     M = len(secondParamInterval)
 
-    colorGridDist = np.ones((M, N))
-    colorGridDist = 2*colorGridDist
+    colorGridDist = np.zeros((M, N))
     sortedData = sorted(LyapunovData, key=lambda X: (X[2]), reverse=True)
     for data in sortedData:
         i = int(data[0])
         j = int(data[1])
-        #if data[2] > 1e-2:
-        #    colorGridDist[j][i] = 1
-        colorGridDist[j][i] = np.log10(data[2])
+        if data[2] > 1e-2:
+            colorGridDist[j][i] = 1
 
 
-    plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('afmhot'))
+
+    plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('binary'))
     plt.colorbar()
     plt.xlabel(r'$ \alpha $')
     plt.ylabel(r'$ \beta $')
     plt.title("r={}".format(thirdParamVal))
     plt.savefig("{}{}".format(pathToDir, imageName))
 
-def prepareStartPtsData(data):
+def prepareStartPtsData(data, paramR):
     """
-        Expects elements to be tuples in form (i, j, a, b, result)
+        Expects elements to be tuples in form (i, j, a, b, result) and float r
         """
     StartPtsData=[]
     sortedData = sorted(data, key=lambda X: (X[0], X[1]))
@@ -148,17 +148,18 @@ def prepareStartPtsData(data):
         if tup[4]:
             for xyz in tup[4]:
                 Xpt,Ypt,Zpt = xyz
-                StartPtsData.append((tup[0], tup[1], tup[2], tup[3], Xpt,Ypt,Zpt))
+                StartPtsData.append((tup[0], tup[1], tup[2], tup[3], paramR, Xpt,Ypt,Zpt))
 
     return StartPtsData
 
 def saveStartPtsDataAsTxt(prepStartPtsData, pathToDir, fileName ):
     if prepStartPtsData:
         headerStr = (
-                'i  j  alpha  beta startPtX  startPtY  startPtZ\n' +
-                '0  1  2      3    4         5         6')
+                'i  j  alpha  beta r startPtX  startPtY  startPtZ\n' +
+                '0  1  2      3    4 5         6         7')
         fmtList = ['%2u',
                    '%2u',
+                   '%+18.15f',
                    '%+18.15f',
                    '%+18.15f',
                    '%+18.15f',

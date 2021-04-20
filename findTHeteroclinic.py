@@ -5,7 +5,7 @@ import SystOsscills as a4d
 from scipy.spatial import distance
 
 
-def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, rhs, rhsJac, phSpaceTransformer, sepCondition, eqTransformer, sepNumCondition, sepProximity, maxTime, withEvents = False, listEqCoords3D = None):
+def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, rhs, rhsJac, phSpaceTransformer, sepCondition, eqTransformer, sepNumCondition, sepProximity, maxTime, listEqCoords3D = None):
     """
     Accepts pairsToCheck — a list of pairs of Equilibria — and checks if there is
     an approximate connection between them. First equilibrium of pair
@@ -24,7 +24,7 @@ def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.
         alphaEqTr = phSpaceTransformer(alphaEq, rhsJac)
         omegaEqsTr = [phSpaceTransformer(oEq, rhsJac) for oEq in omegaEqs]
         fullOmegaEqsTr = itls.chain.from_iterable([eqTransformer(oEq, rhsJac) for oEq in omegaEqsTr])
-        if withEvents:
+        if listEqCoords3D:
             events = sf.createListOfEvents(alphaEqTr, listEqCoords3D, ps, proxs)
         separatrices = sf.computeSeparatrices(alphaEqTr, rhs, ps, maxTime, sepCondition, events)
 
@@ -45,50 +45,25 @@ def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.
 
     return outputInfo
 
-def idTransform(X, rhsJac):
-    """
-    Accepts an Equilibrium and returns it as is
-    """
-    return X
-
-def idListTransform(X, rhsJac):
-    """
-    Accepts an Equilibrium and returns it wrapped in list
-    """
-    return [X]
-
-def hasExactly(num):
-    return lambda seps: len(seps) == num
-
-def anyNumber(seps):
-    return True
-
-def embedBackTransform(X: sf.Equilibrium, rhsJac):
-    """
-    Takes an Equilbrium from invariant plane
-    and reinterprets it as an Equilibrium
-    of reduced system
-    """
-    xNew = sf.embedPointBack(X.coordinates)
-    return sf.getEquilibriumInfo(xNew, rhsJac)
-
-def cirTransform(eq: sf.Equilibrium, rhsJac):
-    coords = sf.generateSymmetricPoints(eq.coordinates)
-    return [sf.getEquilibriumInfo(cd, rhsJac) for cd in coords]
-
-def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime):
+def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
     rhsInvPlane = osc.getRestriction
     jacInvPlane = osc.getRestrictionJac
     rhsReduced = osc.getReducedSystem
     jacReduced = osc.getReducedSystemJac
 
+
     planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
-    eqCoords3D = sf.listEqOnInvPlaneTo3D(planeEqCoords, osc)
+
+    if withEvents:
+        eqCoords3D = sf.listEqOnInvPlaneTo3D(planeEqCoords, osc)
+    else:
+        eqCoords3D = None
+
     tresserPairs = sf.getTresserPairs(planeEqCoords, osc, ps)
 
-    cnctInfo = checkSeparatrixConnection(tresserPairs, ps, proxs, rhsInvPlane, jacInvPlane, idTransform, sf.pickBothSeparatrices, idListTransform, anyNumber, proxs.toSinkPrxty, maxTime)
+    cnctInfo = checkSeparatrixConnection(tresserPairs, ps, proxs, rhsInvPlane, jacInvPlane, sf.idTransform, sf.pickBothSeparatrices, sf.idListTransform, sf.anyNumber, proxs.toSinkPrxty, maxTime)
     newPairs = {(it['omega'], it['alpha']) for it in cnctInfo}
-    finalInfo = checkSeparatrixConnection(newPairs, ps, proxs, rhsReduced, jacReduced, embedBackTransform, sf.pickCirSeparatrix, cirTransform, hasExactly(1), proxs.toSddlPrxty, maxTime, withEvents = True, listEqCoords3D = eqCoords3D)
+    finalInfo = checkSeparatrixConnection(newPairs, ps, proxs, rhsReduced, jacReduced, sf.embedBackTransform, sf.pickCirSeparatrix, sf.cirTransform, sf.hasExactly(1), proxs.toSddlPrxty, maxTime, listEqCoords3D = eqCoords3D)
     return finalInfo
 
 def checkTargetHeteroclinicInInterval(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, lowerLimit):

@@ -31,5 +31,5 @@ if __name__ == "__main__":
     ret = pool.map(partial(workerStartPts, pset = ps), itls.product(enumerate(alphas), enumerate(betas)))
     end = time.time()
     pool.close()
-    pf.saveStartPtsDataAsTxt(pf.prepareStartPtsData(ret), './output_files/LyapVals/'
+    pf.saveStartPtsDataAsTxt(pf.prepareStartPtsData(ret, r), './output_files/LyapVals/'
                              , "StartPts{}x{}".format(N, M))
