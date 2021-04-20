@@ -12,11 +12,13 @@
 {'toSinkPrxty': 1e-5,
 'toSddlPrxty': 1e-2,},
 'Parameters':
-{'rval': 1.,
+{'rval': 2.,
 'a_min': -np.pi,
 'a_max': np.pi,
-'a_N': 13,
+'a_N': 15,
 'b_min': -np.pi,
 'b_max': np.pi,
-'b_N': 13,},
+'b_N': 15,
+'withEvents': False,
+},
 }
