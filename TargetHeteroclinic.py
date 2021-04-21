@@ -33,7 +33,7 @@ if __name__ == "__main__":
     ps = su.getPrecisionSettings(d)
     prox = su.getProximitySettings(d)
 
-    evnts = d['Parameters']['withEvents']
+    evnts = d['Parameters']['useEvents']
 
     pool = mp.Pool(mp.cpu_count())
     start = time.time()

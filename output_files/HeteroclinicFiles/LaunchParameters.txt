@@ -15,10 +15,10 @@
 {'rval': 2.,
 'a_min': -np.pi,
 'a_max': np.pi,
-'a_N': 15,
+'a_N': 11,
 'b_min': -np.pi,
 'b_max': np.pi,
-'b_N': 15,
-'withEvents': False,
+'b_N': 11,
+'useEvents': True,
 },
 }
