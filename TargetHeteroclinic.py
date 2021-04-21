@@ -44,7 +44,7 @@ if __name__ == "__main__":
     ps = su.getPrecisionSettings(configDict)
     prox = su.getProximitySettings(configDict)
 
-    evtFlag = configDict['Parameters']['withEvents']
+    evtFlag = configDict['Parameters']['useEvents']
 
     pool = mp.Pool(mp.cpu_count())
     start = time.time()
