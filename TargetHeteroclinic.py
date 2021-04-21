@@ -1,4 +1,6 @@
 import multiprocessing as mp
+import os.path
+
 import numpy as np
 import systems_fun as sf
 import SystOsscills as a4d
@@ -23,21 +25,30 @@ def workerCheckTarget(params, paramR, events, pset: sf.PrecisionSettings, proxs:
     return i, j, a, b, result
 
 if __name__ == "__main__":
-    f = open("{}".format(sys.argv[1]), 'r')
-    d = eval(f.read())
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print("Usage: python TargetHeteroclinic.py <pathToConfig> <outputMask> <outputDir>"
+              "\n    pathToConfig: full path to configuration file (e.g., \"./cfg.txt\")"
+              "\n    outputMask: unique name that will be used for saving output"
+              "\n    outputDir: directory to which the results are saved")
+        sys.exit()
+    assert os.path.isfile(sys.argv[1]), "Configuration file does not exist!"
+    assert os.path.isdir(sys.argv[3]), "Output directory does not exist!"
+
+    configFile = open("{}".format(sys.argv[1]), 'r')
+    configDict = eval(configFile.read())
 
     timeOfRun = datetime.datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
 
-    N, M, alphas, betas, r = su.getGrid(d)
+    N, M, alphas, betas, r = su.getGrid(configDict)
 
-    ps = su.getPrecisionSettings(d)
-    prox = su.getProximitySettings(d)
+    ps = su.getPrecisionSettings(configDict)
+    prox = su.getProximitySettings(configDict)
 
-    evnts = d['Parameters']['useEvents']
+    evtFlag = configDict['Parameters']['withEvents']
 
     pool = mp.Pool(mp.cpu_count())
     start = time.time()
-    ret = pool.map(partial(workerCheckTarget, paramR = r, events = evnts, pset = ps, proxs = prox, ), itls.product(enumerate(alphas), enumerate(betas)))
+    ret = pool.map(partial(workerCheckTarget, paramR = r, events = evtFlag, pset = ps, proxs = prox, ), itls.product(enumerate(alphas), enumerate(betas)))
     end = time.time()
     pool.close()
 
