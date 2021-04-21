@@ -1,7 +1,8 @@
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import systems_fun as sf
-import matplotlib
 from scipy.integrate import solve_ivp
 
 def saveHeteroclinicsDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
