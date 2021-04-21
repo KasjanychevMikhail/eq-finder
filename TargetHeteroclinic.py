@@ -45,8 +45,8 @@ if __name__ == "__main__":
     pathToOutputDir = sys.argv[3]
 
     print("Took {}s".format(end - start))
-
+    outputFileMask = "{}_{}x{}_{}".format(nameOutputFile, N, M, timeOfRun)
     pf.plotHeteroclinicsData(pf.prepareHeteroclinicsData(ret, r), alphas, betas, r, pathToOutputDir
-                             , "{}_{}x{}_{}".format(nameOutputFile, N, M, timeOfRun))
+                             , outputFileMask)
     pf.saveHeteroclinicsDataAsTxt(pf.prepareHeteroclinicsData(ret, r), pathToOutputDir
-                                  , "{}_{}x{}_{}".format(nameOutputFile, N, M, timeOfRun))
+                                  , outputFileMask)

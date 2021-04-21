@@ -4,6 +4,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import systems_fun as sf
 from scipy.integrate import solve_ivp
+import os
 
 def saveHeteroclinicsDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
     """
@@ -22,8 +23,8 @@ def saveHeteroclinicsDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
                    '%+18.15f',
                    '%+18.15f',
                    '%+18.15f',]
-        np.savetxt("{}{}.txt".format(pathToDir,fileName), HeteroclinicsData, header=headerStr,
-                   fmt=fmtList)
+        fullOutputName = os.path.join(pathToDir, fileName+'.txt')
+        np.savetxt(fullOutputName, HeteroclinicsData, header=headerStr, fmt=fmtList)
 
 def prepareHeteroclinicsData(data, r):
     """
@@ -60,7 +61,8 @@ def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInte
     plt.xlabel(r'$ \alpha $')
     plt.ylabel(r'$ \beta $')
     plt.title("r={}".format(thirdParamVal))
-    plt.savefig("{}{}".format(pathToDir,imageName))
+    fullOutputName = os.path.join(pathToDir, imageName + '.png')
+    plt.savefig(fullOutputName)
 
 def plotTresserPairs(osc, bounds, bordersEq, ps, pathToDir, imageName):
     eqList = sf.findEquilibria(osc.getRestriction, osc.getRestrictionJac, bounds, bordersEq,
@@ -86,7 +88,8 @@ def plotTresserPairs(osc, bounds, bordersEq, ps, pathToDir, imageName):
         p1 = plt.scatter(saddle.coordinates[0], saddle.coordinates[1], c='green', s=40)
         p2 = plt.scatter(sadfoc.coordinates[0], sadfoc.coordinates[1], c='red', s=40)
     plt.legend([p1, p2], ["Седло", "Седло-фокус"])
-    plt.savefig("{}{}".format(pathToDir, imageName))
+    fullOutputName = os.path.join(pathToDir, imageName + '.png')
+    plt.savefig(fullOutputName)
 
 def plotTrajProec(osc, startPt, ps, maxTime, pathToDir, imageName, a, b):
     rhs_vec = lambda t, X: osc(X)
@@ -113,7 +116,8 @@ def plotTrajProec(osc, startPt, ps, maxTime, pathToDir, imageName, a, b):
 
     axs[0].set_title(r'$\alpha ={}, \beta ={}$'.format(a,b))
     axs[0].legend()
-    plt.savefig("{}{}".format(pathToDir,imageName))
+    fullOutputName = os.path.join(pathToDir, imageName + '.png')
+    plt.savefig(fullOutputName)
 
 def plotLyapunovMap(LyapunovData, firstParamInterval, secondParamInterval, thirdParamVal, pathToDir,
                     imageName):
@@ -137,7 +141,8 @@ def plotLyapunovMap(LyapunovData, firstParamInterval, secondParamInterval, third
     plt.xlabel(r'$ \alpha $')
     plt.ylabel(r'$ \beta $')
     plt.title("r={}".format(thirdParamVal))
-    plt.savefig("{}{}".format(pathToDir, imageName))
+    fullOutputName = os.path.join(pathToDir, imageName + '.png')
+    plt.savefig(fullOutputName)
 
 def prepareStartPtsData(data, paramR):
     """
@@ -166,5 +171,6 @@ def saveStartPtsDataAsTxt(prepStartPtsData, pathToDir, fileName ):
                    '%+18.15f',
                    '%+18.15f',
                    '%+18.15f',]
-        np.savetxt("{}{}.txt".format(pathToDir,fileName), prepStartPtsData, header=headerStr,
+        fullOutputName = os.path.join(pathToDir, fileName + '.txt')
+        np.savetxt(fullOutputName, prepStartPtsData, header=headerStr,
                    fmt=fmtList)
