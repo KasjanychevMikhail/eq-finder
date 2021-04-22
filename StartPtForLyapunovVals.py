@@ -1,4 +1,6 @@
 import multiprocessing as mp
+import os.path
+
 import numpy as np
 import systems_fun as sf
 import SystOsscills as a4d
@@ -8,6 +10,8 @@ import time
 import plotFun as pf
 import scriptUtils as su
 import sys
+import datetime
+
 from functools import partial
 
 bounds = [(-0.1, +2 * np.pi + 0.1), (-0.1, +2 * np.pi + 0.1)]
@@ -22,14 +26,34 @@ def workerStartPts(params, pset: sf.PrecisionSettings):
     return i, j, a, b, result
 
 if __name__ == "__main__":
-    f = open("{}{}.txt".format(sys.argv[1], sys.argv[2]), 'r')
-    d = eval(f.read())
-    N, M, alphas, betas, r = su.getGrid(d)
-    ps = su.getPrecisionSettings(d)
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print("Usage: python TargetHeteroclinic.py <pathToConfig> <outputMask> <outputDir>"
+              "\n    pathToConfig: full path to configuration file (e.g., \"./cfg.txt\")"
+              "\n    outputMask: unique name that will be used for saving output"
+              "\n    outputDir: directory to which the results are saved")
+        sys.exit()
+    assert os.path.isfile(sys.argv[1]), "Configuration file does not exist!"
+    assert os.path.isdir(sys.argv[3]), "Output directory does not exist!"
+
+    configFile = open("{}".format(sys.argv[1]), 'r')
+    configDict = eval(configFile.read())
+
+    timeOfRun = datetime.datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+
+    N, M, alphas, betas, r = su.getGrid(configDict)
+
+    ps = su.getPrecisionSettings(configDict)
+
     pool = mp.Pool(mp.cpu_count())
     start = time.time()
     ret = pool.map(partial(workerStartPts, pset = ps), itls.product(enumerate(alphas), enumerate(betas)))
     end = time.time()
     pool.close()
-    pf.saveStartPtsDataAsTxt(pf.prepareStartPtsData(ret, r), './output_files/LyapVals/'
-                             , "StartPts{}x{}".format(N, M))
+
+    nameOutputFile = sys.argv[2]
+    pathToOutputDir = sys.argv[3]
+
+    outputFileMask = "{}_{}x{}_{}".format(nameOutputFile, N, M, timeOfRun)
+
+    pf.saveStartPtsDataAsTxt(pf.prepareStartPtsData(ret, r), pathToOutputDir
+                             , outputFileMask)

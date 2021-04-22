@@ -15,8 +15,8 @@
 {'rval': 1.,
 'a_min': -np.pi,
 'a_max': np.pi,
-'a_N': 6,
+'a_N': 4,
 'b_min': -np.pi,
 'b_max': np.pi,
-'b_N': 6,},
+'b_N': 4,},
 }

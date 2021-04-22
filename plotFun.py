@@ -127,13 +127,12 @@ def plotLyapunovMap(LyapunovData, firstParamInterval, secondParamInterval, third
     M = len(secondParamInterval)
 
     colorGridDist = np.zeros((M, N))
-    sortedData = sorted(LyapunovData, key=lambda X: (X[2]), reverse=True)
+    sortedData = sorted(LyapunovData, key=lambda X: (X[2]))
     for data in sortedData:
         i = int(data[0])
         j = int(data[1])
-        if data[2] > 1e-2:
+        if data[2] > 1e-3:
             colorGridDist[j][i] = 1
-
 
 
     plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('binary'))

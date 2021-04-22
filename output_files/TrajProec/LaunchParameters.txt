@@ -11,8 +11,4 @@
 'ConnectionProximity':
 {'toSinkPrxty': 1e-5,
 'toSddlPrxty': 1e-2,},
-'InputFile':
-{'NameOfFile': "Heteroclinic11x11",
-'PathToFile': "./output_files/HeteroclinicFiles/",
-},
 }
