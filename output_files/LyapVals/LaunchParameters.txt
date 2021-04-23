@@ -9,10 +9,14 @@
 'separatrix_rTol': 1e-11,
 'separatrix_aTol': 1e-11,},
 'ConnectionProximity':
-{'sdlSinkPrxty': 1e-5,
-'sfocSddlPrxty': 1e-2,},
+{'toSinkPrxty': 1e-5,
+'toSddlPrxty': 1e-2,},
 'Parameters':
 {'rval': 1.,
-'aval': 4.586725274241098,
-'bval': 5.005604294719737,},
+'a_min': -np.pi,
+'a_max': np.pi,
+'a_N': 4,
+'b_min': -np.pi,
+'b_max': np.pi,
+'b_N': 4,},
 }

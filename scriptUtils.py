@@ -7,7 +7,9 @@ def getGrid(dictConfig):
 
     alphas = np.linspace(dictConfig['Parameters']['a_min'], dictConfig['Parameters']['a_max'], N)
     betas = np.linspace(dictConfig['Parameters']['b_min'], dictConfig['Parameters']['b_max'], M)
-    return (N, M, alphas, betas)
+
+    r = dictConfig['Parameters']['rval']
+    return ( N, M, alphas, betas, r)
 
 def getPrecisionSettings(dictConfig):
     ps = sf.PrecisionSettings(zeroImagPartEps=dictConfig['NumericTolerance']['zeroImagPartEps'],
@@ -16,8 +18,11 @@ def getPrecisionSettings(dictConfig):
                               separatrixShift=dictConfig['SeparatrixComputing']['separatrixShift'],
                               separatrix_rTol=dictConfig['SeparatrixComputing']['separatrix_rTol'],
                               separatrix_aTol=dictConfig['SeparatrixComputing']['separatrix_aTol'],
-                              sdlSinkPrxty=dictConfig['ConnectionProximity']['sdlSinkPrxty'],
-                              sfocSddlPrxty=dictConfig['ConnectionProximity']['sfocSddlPrxty'],
                               marginBorder=dictConfig['NumericTolerance']['marginBorder']
                               )
     return ps
+
+def getProximitySettings(dictConfig):
+    prox = sf.ProximitySettings(toSinkPrxty = dictConfig['ConnectionProximity']['toSinkPrxty'],
+                                toSddlPrxty = dictConfig['ConnectionProximity']['toSddlPrxty'])
+    return prox

@@ -7,7 +7,7 @@ from scipy import optimize
 from numpy import linalg as LA
 from sklearn.cluster import AgglomerativeClustering
 from scipy.integrate import solve_ivp
-
+from scipy.spatial import distance
 
 class EnvironmentParameters:
     def __init__(self, pathToOutputDirectory, outputStamp, imageStamp):
@@ -19,15 +19,13 @@ class EnvironmentParameters:
 
 class PrecisionSettings:
     def __init__(self, zeroImagPartEps, zeroRealPartEps, clustDistThreshold, separatrixShift, separatrix_rTol,
-                 separatrix_aTol, sdlSinkPrxty, sfocSddlPrxty, marginBorder):
+                 separatrix_aTol, marginBorder):
         assert zeroImagPartEps > 0, "Precision must be greater than zero!"
         assert zeroRealPartEps > 0, "Precision must be greater than zero!"
         assert clustDistThreshold > 0, "Precision must be greater than zero!"
         assert separatrixShift > 0, "Precision must be greater than zero!"
         assert separatrix_rTol > 0, "Precision must be greater than zero!"
         assert separatrix_aTol > 0, "Precision must be greater than zero!"
-        assert sdlSinkPrxty > 0, "Precision must be greater than zero!"
-        assert sfocSddlPrxty > 0, "Precision must be greater than zero!"
 
         self.zeroImagPartEps = zeroImagPartEps
         self.zeroRealPartEps = zeroRealPartEps
@@ -35,8 +33,6 @@ class PrecisionSettings:
         self.separatrixShift = separatrixShift
         self.rTol = separatrix_rTol
         self.aTol = separatrix_aTol
-        self.sdlSinkPrxty = sdlSinkPrxty
-        self.sfocSddlPrxty = sfocSddlPrxty
         self.marginBorder = marginBorder
 
     def isEigStable(self, Z):
@@ -55,11 +51,19 @@ STD_PRECISION = PrecisionSettings(zeroImagPartEps=1e-14,
                                   separatrixShift=1e-5,
                                   separatrix_rTol=1e-11,
                                   separatrix_aTol=1e-11,
-                                  sdlSinkPrxty=1e-5,
-                                  sfocSddlPrxty=1e-2,
                                   marginBorder=0
                                   )
 
+class ProximitySettings:
+    def __init__(self, toSinkPrxty, toSddlPrxty):
+        assert toSinkPrxty > 0, "Precision must be greater than zero!"
+        assert toSddlPrxty > 0, "Precision must be greater than zero!"
+        self.toSinkPrxty = toSinkPrxty
+        self.toSddlPrxty = toSddlPrxty
+
+STD_PROXIMITY = ProximitySettings(toSinkPrxty=1e-5,
+                                  toSddlPrxty=1e-2
+                                  )
 
 class Equilibrium:
     def __init__(self, coordinates, eigenvalues, eigvectors):
@@ -320,24 +324,28 @@ def isPtInUpperTriangle(ptOnPlane, ps: PrecisionSettings):
 def isStable2DFocus(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 0, 1, 0]
 
-
-def is3DSaddleFocusWith1dU(eq, ps: PrecisionSettings):
-    return eq.getEqType(ps) == [2, 0, 1, 1, 0]
-
+def isStable2DNode(eq, ps: PrecisionSettings):
+    return eq.getEqType(ps) == [2, 0, 0, 0, 0]
 
 def is2DSaddle(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [1, 0, 1, 0, 0]
 
+def is3DSaddleFocusWith1dU(eq, ps: PrecisionSettings):
+    return eq.getEqType(ps) == [2, 0, 1, 1, 0]
 
 def is3DSaddleWith1dU(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 1, 0, 0]
 
-
 def has1DUnstable(eq, ps: PrecisionSettings):
     return eq.getEqType(ps)[2] == 1
 
+def listEqOnInvPlaneTo3D(listEq, rhs):
+    listEq3D = []
+    for eq in listEq:
+        listEq3D.append(embedBackTransform(eq, rhs.getReducedSystemJac))
+    return listEq3D
 
-def getTresserPairs(EqList, rhs, ps: PrecisionSettings):
+def getTresserPairs(eqList, rhs, ps: PrecisionSettings):
     '''
     Accepts EqList — a list of all Equilibria on invariant plane.
     Returns pairs of Equilibria that might be organized in
@@ -346,10 +354,9 @@ def getTresserPairs(EqList, rhs, ps: PrecisionSettings):
     '''
     sadFocs = []
     saddles = []
-    for eq in EqList:
+    for eq in eqList:
         ptOnInvPlane = eq.coordinates
-        ptOnPlaneIn3D = embedPointBack(ptOnInvPlane)
-        eqOnPlaneIn3D = getEquilibriumInfo(ptOnPlaneIn3D, rhs.getReducedSystemJac)
+        eqOnPlaneIn3D = embedBackTransform(eq, rhs.getReducedSystemJac)
         if (isPtInUpperTriangle(ptOnInvPlane, ps)):
             if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
                 sadFocs.append((eq, eqOnPlaneIn3D))
@@ -382,6 +389,19 @@ def getInitPointsOnUnstable1DSeparatrix(eq, condition, ps: PrecisionSettings):
     else:
         raise ValueError('Not a saddle with 1d unstable manifold!')
 
+def get1dUnstEqs(eqList, rhs, ps: PrecisionSettings, OnlySadFoci):
+    list1dUnstEqs = []
+    for eq in eqList:
+        ptOnInvPlane = eq.coordinates
+        eqOnPlaneIn3D  = embedBackTransform(eq, rhs.getReducedSystemJac)
+        if (isPtInUpperTriangle(ptOnInvPlane, ps)):
+            if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
+                list1dUnstEqs.append(eq)
+            if not OnlySadFoci:
+                if(isStable2DNode(eq, ps) and is3DSaddleWith1dU(eqOnPlaneIn3D, ps)):
+                    list1dUnstEqs.append(eq)
+
+    return list1dUnstEqs
 
 def pickBothSeparatrices(ptCoord, eqCoord):
     return True
@@ -395,11 +415,72 @@ def isInCIR(pt):
 def pickCirSeparatrix(ptCoord, eqCoord):
     return isInCIR(ptCoord)
 
-def computeSeparatrices(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, condition):
+def computeSeparatrices(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, condition, listEvents = None):
     startPts = getInitPointsOnUnstable1DSeparatrix(eq, condition, ps)
     rhs_vec = lambda t, X: rhs(X)
     separatrices = []
     for startPt in startPts:
-        sol = solve_ivp(rhs_vec, [0, maxTime], startPt, rtol=ps.rTol, atol=ps.aTol, dense_output=True)
+        sol = solve_ivp(rhs_vec, [0, maxTime], startPt, events=listEvents, rtol=ps.rTol, atol=ps.aTol,
+                        dense_output=True)
         separatrices.append(np.transpose(sol.y))
     return separatrices
+
+def constructDistEvent(x0, eps):
+    evt = lambda t, X: distance.euclidean(x0,X) - eps
+    return evt
+
+def isSaddle(eq, ps: PrecisionSettings):
+    eqType = eq.getEqType(ps)
+    return eqType[0] > 0 and eqType[1]==0 and eqType[2] > 0
+
+def isSink(eq, ps: PrecisionSettings):
+    eqType = eq.getEqType(ps)
+    return eqType[1] == 0 and eqType[2] == 0
+
+def createListOfEvents(startEq, eqList, ps: PrecisionSettings, proxs: ProximitySettings):
+    listEvents = []
+    for eq in eqList:
+        if isSaddle(eq, ps) or isSink(eq, ps):
+            coordList = generateSymmetricPoints(eq.coordinates)
+            if eq.coordinates == startEq.coordinates:
+                coordList = coordList[1:]
+            for coords in coordList:
+                if isSaddle(eq, ps):
+                    event = constructDistEvent(coords, proxs.toSddlPrxty)
+                elif isSink(eq, ps):
+                    event = constructDistEvent(coords, proxs.toSinkPrxty)
+                event.terminal = True
+                event.direction = 0
+                listEvents.append(event)
+    return listEvents
+
+def idTransform(X, rhsJac):
+    """
+    Accepts an Equilibrium and returns it as is
+    """
+    return X
+
+def idListTransform(X, rhsJac):
+    """
+    Accepts an Equilibrium and returns it wrapped in list
+    """
+    return [X]
+
+def hasExactly(num):
+    return lambda seps: len(seps) == num
+
+def anyNumber(seps):
+    return True
+
+def embedBackTransform(X: Equilibrium, rhsJac):
+    """
+    Takes an Equilbrium from invariant plane
+    and reinterprets it as an Equilibrium
+    of reduced system
+    """
+    xNew = embedPointBack(X.coordinates)
+    return getEquilibriumInfo(xNew, rhsJac)
+
+def cirTransform(eq: Equilibrium, rhsJac):
+    coords = generateSymmetricPoints(eq.coordinates)
+    return [getEquilibriumInfo(cd, rhsJac) for cd in coords]
