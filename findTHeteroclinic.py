@@ -26,13 +26,13 @@ def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.
         fullOmegaEqsTr = itls.chain.from_iterable([eqTransformer(oEq, rhsJac) for oEq in omegaEqsTr])
         if listEqCoords3D:
             events = sf.createListOfEvents(alphaEqTr, listEqCoords3D, ps, proxs)
-        separatrices = sf.computeSeparatrices(alphaEqTr, rhs, ps, maxTime, sepCondition, events)
+        separatrices, integrTimes = sf.computeSeparatrices(alphaEqTr, rhs, ps, maxTime, sepCondition, events)
 
         if not sepNumCondition(separatrices):
             raise ValueError('Assumption on the number of separatrices is not satisfied')
 
         for omegaEqTr in fullOmegaEqsTr:
-            for separatrix in separatrices:
+            for i, separatrix in enumerate(separatrices):
                 dist = distance.cdist(separatrix, [omegaEqTr.coordinates]).min()
                 if dist < sepProximity:
                     info = {}
@@ -41,6 +41,7 @@ def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.
                     info['omega'] = omegaEqTr
                     info['stPt']  = separatrix[0]
                     info['dist'] = dist
+                    info['integrationTime'] = integrTimes[i]
                     outputInfo.append(info)
 
     return outputInfo

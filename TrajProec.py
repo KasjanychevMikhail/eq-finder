@@ -14,15 +14,16 @@ import datetime
 from functools import partial
 
 def workerPlotTrajProec(params, pset: sf.PrecisionSettings, pathToDir, nameOfFile):
-    (i, (a, b)), startPt = params
-    ud = [0.5, a, b, 1]
+    (i, (a, b, r)), startPt = params
+    ud = [0.5, a, b, r]
     osc = a4d.FourBiharmonicPhaseOscillators(ud[0], ud[1], ud[2], ud[3])
     pf.plotTrajProec(osc.getReducedSystem, startPt, pset, 1000, pathToDir, "{}_{}".format(i, nameOfFile),a,b)
 
 if __name__ == "__main__":
     if '-h' in sys.argv or '--help' in sys.argv:
-        print("Usage: python TargetHeteroclinic.py <pathToConfig> <outputMask> <outputDir>"
+        print("Usage: python TrajProec.py <pathToConfig> <pathToDataFile> <outputMask> <outputDir>"
               "\n    pathToConfig: full path to configuration file (e.g., \"./cfg.txt\")"
+              "\n    pathToDataFile: full path to heteroclinic data file (e.g., \"./htrData.txt\")"
               "\n    outputMask: unique name that will be used for saving output"
               "\n    outputDir: directory to which the results are saved")
         sys.exit()
@@ -43,8 +44,8 @@ if __name__ == "__main__":
 
     outputFileMask = "{}_{}".format(nameOutputFile, timeOfRun)
 
-    pars = np.loadtxt(fullPathToDataFile, usecols=(2, 3))
-    startPts = np.loadtxt(fullPathToDataFile, usecols=(5, 6, 7))
+    pars = np.loadtxt(fullPathToDataFile, usecols=(2, 3, 4))
+    startPts = np.loadtxt(fullPathToDataFile, usecols=(7, 8, 9))
     pool = mp.Pool(mp.cpu_count())
     start = time.time()
     ret = pool.map(partial(workerPlotTrajProec, pset = ps, pathToDir = pathToOutputDir, nameOfFile = outputFileMask), itls.product(enumerate(pars), startPts))

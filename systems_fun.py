@@ -419,11 +419,13 @@ def computeSeparatrices(eq: Equilibrium, rhs, ps: PrecisionSettings, maxTime, co
     startPts = getInitPointsOnUnstable1DSeparatrix(eq, condition, ps)
     rhs_vec = lambda t, X: rhs(X)
     separatrices = []
+    integrationTime = []
     for startPt in startPts:
         sol = solve_ivp(rhs_vec, [0, maxTime], startPt, events=listEvents, rtol=ps.rTol, atol=ps.aTol,
                         dense_output=True)
         separatrices.append(np.transpose(sol.y))
-    return separatrices
+        integrationTime.append(sol.t[-1])
+    return [separatrices, integrationTime]
 
 def constructDistEvent(x0, eps):
     evt = lambda t, X: distance.euclidean(x0,X) - eps

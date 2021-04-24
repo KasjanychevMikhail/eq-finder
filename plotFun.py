@@ -8,12 +8,12 @@ import os
 
 def saveHeteroclinicsDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
     """
-    (i, j, a, b, r, dist)
+    (i, j, a, b, r, dist, timeIntegration, coordsStartPt, coordsSadfoc, coordsSaddle)
     """
     if HeteroclinicsData:
         headerStr = (
-                'i  j  alpha  beta  r    dist startPtX  startPtY  startPtZ\n' +
-                '0  1  2      3     4    5    6         7         8')
+                'i  j  alpha  beta  r  distTrajToEq  integrationTime  startPtX  startPtY  startPtZ  sadfocPtX  sadfocPtY  sadfocPtZ  saddlePtX  saddlePtY  saddlePtZ\n' +
+                '0  1  2      3     4  5             6                7         8         9         10         11         12         13         14         15')
         fmtList = ['%2u',
                    '%2u',
                    '%+18.15f',
@@ -22,33 +22,45 @@ def saveHeteroclinicsDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
                    '%+18.15f',
                    '%+18.15f',
                    '%+18.15f',
-                   '%+18.15f',]
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   ]
         fullOutputName = os.path.join(pathToDir, fileName+'.txt')
         np.savetxt(fullOutputName, HeteroclinicsData, header=headerStr, fmt=fmtList)
 
-def prepareHeteroclinicsData(data, r):
+def prepareTargetHeteroclinicsData(data):
     """
         Accepts result of running heteroclinics analysis on grid.
-        Expects elements to be tuples in form (i, j, a, b, result)
+        Expects elements to be tuples in form (i, j, a, b, r, result)
         """
-    HeteroclinicsData=[]
+    TargetHeteroclinicsData=[]
     sortedData = sorted(data, key=lambda X: (X[0], X[1]))
     for d in sortedData:
-        if d[4]:
-            for dt in d[4]:
-            #dict = min(d[4], key=lambda i: i['dist'])
-                Xpt,Ypt,Zpt = dt['stPt']
-                HeteroclinicsData.append((d[0], d[1], d[2], d[3], r, dt['dist'], Xpt, Ypt, Zpt))
+        i, j, alpha, beta, r, infoDicts = d
+        if infoDicts:
+            for infoDict in infoDicts:
+                startPtX, startPtY, startPtZ = infoDict['stPt']
+                sadfocPtX, sadfocPtY, sadfocPtZ = infoDict['alpha'].coordinates
+                saddlePtX, saddlePtY, saddlePtZ = infoDict['omega'].coordinates
+                TargetHeteroclinicsData.append((i, j, alpha, beta, r, infoDict['dist'], infoDict['integrationTime'],
+                                                startPtX, startPtY, startPtZ, sadfocPtX, sadfocPtY, sadfocPtZ,
+                                                saddlePtX, saddlePtY, saddlePtZ))
 
-    return HeteroclinicsData
+    return TargetHeteroclinicsData
 
-def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, thirdParamVal, pathToDir, imageName):
+def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, pathToDir, imageName):
     """
     (i, j, a, b, r, dist)
     """
     N = len(firstParamInterval)
     M = len(secondParamInterval)
-
+    valParamR = heteroclinicsData[0][4]
     colorGridDist = np.zeros((M, N))
 
     for data in heteroclinicsData:
@@ -60,7 +72,7 @@ def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInte
     plt.colorbar()
     plt.xlabel(r'$ \alpha $')
     plt.ylabel(r'$ \beta $')
-    plt.title("r={}".format(thirdParamVal))
+    plt.title("r={}".format(valParamR))
     fullOutputName = os.path.join(pathToDir, imageName + '.png')
     plt.savefig(fullOutputName)
 
@@ -143,17 +155,18 @@ def plotLyapunovMap(LyapunovData, firstParamInterval, secondParamInterval, third
     fullOutputName = os.path.join(pathToDir, imageName + '.png')
     plt.savefig(fullOutputName)
 
-def prepareStartPtsData(data, paramR):
+def prepareStartPtsData(data):
     """
-        Expects elements to be tuples in form (i, j, a, b, result) and float r
+        Expects elements to be tuples in form (i, j, a, b, r, result)
         """
     StartPtsData=[]
     sortedData = sorted(data, key=lambda X: (X[0], X[1]))
-    for tup in sortedData:
-        if tup[4]:
-            for xyz in tup[4]:
-                Xpt,Ypt,Zpt = xyz
-                StartPtsData.append((tup[0], tup[1], tup[2], tup[3], paramR, Xpt,Ypt,Zpt))
+    for d in sortedData:
+        i, j, alpha, beta, r, listStartPt = d
+        if listStartPt:
+            for startPt in listStartPt:
+                startPtX, startPtY, startPtZ = startPt
+                StartPtsData.append((i, j, alpha, beta, r,  startPtX, startPtY, startPtZ))
 
     return StartPtsData
 

@@ -18,11 +18,12 @@ bordersEq = [(-1e-15, +2 * np.pi + 1e-15), (-1e-15, +2 * np.pi + 1e-15)]
 
 def workerCheckTarget(params, paramR, events, pset: sf.PrecisionSettings, proxs: sf.ProximitySettings):
     (i, a), (j, b) = params
-    ud = [0.5, a, b, paramR]
+    r = paramR
+    ud = [0.5, a, b, r]
     osc = a4d.FourBiharmonicPhaseOscillators(ud[0], ud[1], ud[2], ud[3])
     eqf = sf.ShgoEqFinder(300, 30, 1e-10)
     result = fth.checkTargetHeteroclinic(osc, bordersEq, bounds, eqf, pset, proxs, 1000., events)
-    return i, j, a, b, result
+    return i, j, a, b, r, result
 
 if __name__ == "__main__":
     if '-h' in sys.argv or '--help' in sys.argv:
@@ -48,7 +49,7 @@ if __name__ == "__main__":
 
     pool = mp.Pool(mp.cpu_count())
     start = time.time()
-    ret = pool.map(partial(workerCheckTarget, paramR = r, events = evtFlag, pset = ps, proxs = prox, ), itls.product(enumerate(alphas), enumerate(betas)))
+    ret = pool.map(partial(workerCheckTarget, paramR = r,events = evtFlag, pset = ps, proxs = prox), itls.product(enumerate(alphas), enumerate(betas)))
     end = time.time()
     pool.close()
 
@@ -57,7 +58,6 @@ if __name__ == "__main__":
 
     print("Took {}s".format(end - start))
     outputFileMask = "{}_{}x{}_{}".format(nameOutputFile, N, M, timeOfRun)
-    pf.plotHeteroclinicsData(pf.prepareHeteroclinicsData(ret, r), alphas, betas, r, pathToOutputDir
-                             , outputFileMask)
-    pf.saveHeteroclinicsDataAsTxt(pf.prepareHeteroclinicsData(ret, r), pathToOutputDir
+    pf.plotHeteroclinicsData(pf.prepareTargetHeteroclinicsData(ret), alphas, betas, pathToOutputDir, outputFileMask)
+    pf.saveHeteroclinicsDataAsTxt(pf.prepareTargetHeteroclinicsData(ret), pathToOutputDir
                                   , outputFileMask)
