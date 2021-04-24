@@ -2,6 +2,7 @@ import systems_fun as sf
 import numpy as np
 import pytest
 import findTHeteroclinic as fth
+import SystOsscills as a4d
 
 @pytest.fixture
 def stdPS():
@@ -278,3 +279,404 @@ def test_Duffing(duffingSetup):
     out = fth.checkSeparatrixConnection(pairsToCheck, fth.sf.STD_PRECISION, fth.sf.STD_PROXIMITY, ob.rhs, ob.rhsJac,
                               sf.idTransform, rightSep, sf.idListTransform, sf.hasExactly(1), 1e-5, 1000.)
     assert out[0]['dist'] < 1e-5
+
+class TestSystOscills:
+    def test_fullSystems_are_not_equal_1 (self):
+        r = 2
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 1, 1, 1]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_fullSystems_are_not_equal_2 (self):
+        r = 10
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 0, 1, 1]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_fullSystems_are_not_equal_3 (self):
+        r = 3101041
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 1, 1, 8]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_fullSystems_are_not_equal_4 (self):
+        r = 71
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 1, 7, 9]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_fullSystems_are_not_equal_5 (self):
+        r = 181
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 2, 3, 5]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_fullSystems_are_not_equal_6 (self):
+        r = 1715
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 10, 2, 0.1]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_fullSystems_are_equal_with_multiplication_1 (self):
+        r = 2
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [11, 11, 1, 16]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_fullSystems_are_equal_with_multiplication_2 (self):
+        r = 3
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 15, 1, 11]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_fullSystems_are_equal_with_multiplication_3 (self):
+        r = 520003
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 0.1, 1, 110]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_fullSystems_are_equal_with_multiplication_4 (self):
+        r = 53
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [110, 1, 0.1, 7]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_fullSystems_are_equal_with_multiplication_5 (self):
+        r = 103
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 2, 3, 4]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_fullSystems_are_equal_with_multiplication_6 (self):
+        r = 1503
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 5, 0, 7]
+        resWithoutEps = oscWithoutEps.getFullSystem(startPt)
+        resWithEps = oscWithEps.getFullSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_ReducedSystem_are_not_equal_1 (self):
+        r = 2
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.4441, 23.441, 0.0004]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_ReducedSystem_are_not_equal_2 (self):
+        r = 10
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [11, 17, 13]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_ReducedSystem_are_not_equal_3 (self):
+        r = 30000
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 199, 1]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_ReducedSystem_are_not_equal_4 (self):
+        r = 71
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 2, 3]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_ReducedSystem_are_not_equal_5 (self):
+        r = 181
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 0, 1]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_ReducedSystem_are_not_equal_6 (self):
+        r = 1715
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [121, 0, 12.1]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_ReducedSystem_are_equal_with_multiplication_1 (self):
+        r = 2
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.154, 121.01, 1121]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).any()
+
+    def test_ReducedSystem_are_equal_with_multiplication_2 (self):
+        r = 3
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [20.44, 0.541, 2]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_ReducedSystem_are_equal_with_multiplication_3 (self):
+        r = 50013
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [6, 7.5, 11.1]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_ReducedSystem_are_equal_with_multiplication_4 (self):
+        r = 53
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0, 201, 17]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_ReducedSystem_are_equal_with_multiplication_5 (self):
+        r = 103
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 1, 2]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_ReducedSystem_are_equal_with_multiplication_6 (self):
+        r = 1503
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 1, 1]
+        resWithoutEps = oscWithoutEps.getReducedSystem(startPt)
+        resWithEps = oscWithEps.getReducedSystem(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_Restriction_are_not_equal_1 (self):
+        r = 4
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [1, 0]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_Restriction_are_not_equal_2 (self):
+        r = 131
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 5.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_Restriction_are_not_equal_3 (self):
+        r = 191
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 0.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_Restriction_are_not_equal_4 (self):
+        r = 591
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 1.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_Restriction_are_not_equal_5 (self):
+        r = 1591
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [5.1, 15.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_Restriction_are_not_equal_6 (self):
+        r = 10591
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [-5.1, 105.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (resWithoutEps != resWithEps).any()
+
+    def test_Restriction_are_equal_with_multiplication_1 (self):
+        r = 3
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [-5.1, 105.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_Restriction_are_equal_with_multiplication_2 (self):
+        r = 71
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 17.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_Restriction_are_equal_with_multiplication_3 (self):
+        r = 171
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [11.1, 17.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_Restriction_are_equal_with_multiplication_4 (self):
+        r = 531
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [10.1, 117.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_Restriction_are_equal_with_multiplication_5(self):
+        r = 1531
+        eps = 1 / r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [10.1, 1117.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (eps * resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_Restriction_are_equal_with_multiplication_6(self):
+        r = 10531
+        eps = 1 / r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [-10.1, 0.4]
+        resWithoutEps = oscWithoutEps.getRestriction(startPt)
+        resWithEps = oscWithEps.getRestriction(startPt)
+        assert (eps * resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_ReducedSystemJac_are_equal_with_multiplication_1 (self):
+        r = 103
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 1, 2]
+        resWithoutEps = oscWithoutEps.getReducedSystemJac(startPt)
+        resWithEps = oscWithEps.getReducedSystemJac(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_ReducedSystemJac_are_equal_with_multiplication_2 (self):
+        r = 1503
+        eps = 1/r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [0.1, 1, 1]
+        resWithoutEps = oscWithoutEps.getReducedSystemJac(startPt)
+        resWithEps = oscWithEps.getReducedSystemJac(startPt)
+        assert (eps*resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_RestrictionJac_are_equal_with_multiplication_1(self):
+        r = 1531
+        eps = 1 / r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [10.1, 1117.4]
+        resWithoutEps = oscWithoutEps.getRestrictionJac(startPt)
+        resWithEps = oscWithEps.getRestrictionJac(startPt)
+        assert (eps * resWithoutEps - resWithEps < 1e-15).all()
+
+    def test_RestrictionJac_are_equal_with_multiplication_2(self):
+        r = 10531
+        eps = 1 / r
+        oscWithoutEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r)
+        oscWithEps = a4d.FourBiharmonicPhaseOscillators(1, 1, 1, r, eps)
+        startPt = [-10.1, 0.4]
+        resWithoutEps = oscWithoutEps.getRestrictionJac(startPt)
+        resWithEps = oscWithEps.getRestrictionJac(startPt)
+        assert (eps * resWithoutEps - resWithEps < 1e-15).all()

@@ -1,11 +1,14 @@
 import numpy as np
 
 class FourBiharmonicPhaseOscillators:
-    def __init__(self, paramW, paramA, paramB, paramR):
+    def __init__(self, paramW, paramA, paramB, paramR, paramEps = 1):
+        if(paramEps < 1):
+            assert paramR - 1/paramEps < 1e-15, "(r - 1/eps) must be zero!"
         self.paramW = paramW
         self.paramA = paramA
         self.paramB = paramB
         self.paramR = paramR
+        self.paramEps = paramEps
 
     def funG(self, fi):
         return -np.sin(fi + self.paramA) + self.paramR * np.sin(2 * fi + self.paramB)
@@ -17,7 +20,7 @@ class FourBiharmonicPhaseOscillators:
             for j in range(4):
                 elem += 0.25 * self.funG(phis[i]-phis[j])
             rhsPhis[i] = elem
-        return rhsPhis
+        return self.paramEps*np.array(rhsPhis)
 
     def getReducedSystem(self, gammas):
         gammas = list(gammas)
@@ -26,9 +29,9 @@ class FourBiharmonicPhaseOscillators:
         rhsGamma = [0,0,0,0]
         for i in range(4):
             rhsGamma[i] = rhsPhi[i]-rhsPhi[0]
-        return rhsGamma[1:]
+        return np.array(rhsGamma[1:])
 
-    def getRestriction(self,psi):       
+    def getRestriction(self,psi):
         psi = list(psi)      
         gammas = [0] + psi
         rhsPsi = self.getReducedSystem(gammas)
@@ -60,14 +63,14 @@ class FourBiharmonicPhaseOscillators:
             (np.cos((-x) + self.paramA) - 2*self.paramR * np.cos(2 * (-x) + self.paramB))
                )/4
         
-    def getRestrictionJac(self,X):  
-        x,y=X       
-        return np.array([[self.DiagComponentJac2d(x,y), self.NotDiagComponentJac(x,y)],
+    def getRestrictionJac(self,X):
+        x,y=X
+        return self.paramEps*np.array([[self.DiagComponentJac2d(x,y), self.NotDiagComponentJac(x,y)],
                          [ self.NotDiagComponentJac(y,x),self.DiagComponentJac2d(y,x)]])
     
-    def getReducedSystemJac(self,X):  
+    def getReducedSystemJac(self,X):
         x,y,z=X       
-        return np.array([[self.DiagComponentJac3d(x,y,z), self.NotDiagComponentJac(x,y),self.NotDiagComponentJac(x,z)],
+        return self.paramEps*np.array([[self.DiagComponentJac3d(x,y,z), self.NotDiagComponentJac(x,y),self.NotDiagComponentJac(x,z)],
                          [ self.NotDiagComponentJac(y,x),self.DiagComponentJac3d(y,x,z),self.NotDiagComponentJac(y,z)],
                          [ self.NotDiagComponentJac(z,x),self.NotDiagComponentJac(z,y),self.DiagComponentJac3d(z,x,y)]
                         ])
