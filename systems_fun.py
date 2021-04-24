@@ -452,7 +452,7 @@ def createListOfEvents(startEq, eqList, ps: PrecisionSettings, proxs: ProximityS
                 elif isSink(eq, ps):
                     event = constructDistEvent(coords, proxs.toSinkPrxty)
                 event.terminal = True
-                event.direction = 0
+                event.direction = -1
                 listEvents.append(event)
     return listEvents
 
