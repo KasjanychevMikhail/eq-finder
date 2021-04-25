@@ -231,11 +231,11 @@ def findEquilibria(rhs, rhsJac, bounds, borders, optMethod, ps: PrecisionSetting
 
 
 def inBounds(X, boundaries):
-    x, y = X
-    Xb, Yb = boundaries
-    b1, b2 = Xb
-    b3, b4 = Yb
-    return ((x > b1) and (x < b2) and (y > b3) and (y < b4))
+    flag = True
+    for i, borders in enumerate(boundaries):
+        if (X[i] < borders[0]) or (X[i] > borders[1]):
+            flag = False
+    return flag
 
 
 def filterEq(listEquilibria, ps: PrecisionSettings):
