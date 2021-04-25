@@ -233,7 +233,7 @@ def findEquilibria(rhs, rhsJac, bounds, borders, optMethod, ps: PrecisionSetting
 def inBounds(X, boundaries):
     flag = True
     for i, borders in enumerate(boundaries):
-        if (X[i] < borders[0]) or (X[i] > borders[1]):
+        if (X[i] <= borders[0]) or (X[i] >= borders[1]):
             flag = False
     return flag
 
