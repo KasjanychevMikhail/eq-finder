@@ -410,7 +410,7 @@ def pickBothSeparatrices(ptCoord, eqCoord):
 def isInCIR(pt, strictly = False):
     th2, th3, th4 = pt
     if strictly:
-        return (0 + 1e-2 <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi - 1e-2))
+        return (0 + 1e-1 <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi - 1e-1))
     return (0 - 1e-7 <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi + 1e-7))
 
 
@@ -440,6 +440,10 @@ def isSaddle(eq, ps: PrecisionSettings):
 def isSink(eq, ps: PrecisionSettings):
     eqType = eq.getEqType(ps)
     return eqType[1] == 0 and eqType[2] == 0
+
+def isSourse(eq, ps: PrecisionSettings):
+    eqType = eq.getEqType(ps)
+    return eqType[0] == 0 and eqType[1] == 0
 
 def createListOfEvents(startEq, eqList, ps: PrecisionSettings, proxs: ProximitySettings):
     listEvents = []
