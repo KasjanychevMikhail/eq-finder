@@ -407,10 +407,10 @@ def pickBothSeparatrices(ptCoord, eqCoord):
     return True
 
 
-def isInCIR(pt, strictly = False):
+def isInCIR(pt, strictlyVal = 0):
     th2, th3, th4 = pt
-    if strictly:
-        return (0 + 1e-1 <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi - 1e-1))
+    if strictlyVal:
+        return (0 + strictlyVal <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi - strictlyVal))
     return (0 - 1e-7 <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi + 1e-7))
 
 
@@ -441,7 +441,7 @@ def isSink(eq, ps: PrecisionSettings):
     eqType = eq.getEqType(ps)
     return eqType[1] == 0 and eqType[2] == 0
 
-def isSourse(eq, ps: PrecisionSettings):
+def isSourсe(eq, ps: PrecisionSettings):
     eqType = eq.getEqType(ps)
     return eqType[0] == 0 and eqType[1] == 0
 
