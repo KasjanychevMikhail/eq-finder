@@ -407,10 +407,10 @@ def pickBothSeparatrices(ptCoord, eqCoord):
     return True
 
 
-def isInCIR(pt, strictlyVal = 0):
+def isInCIR(pt, strictly = True):
     th2, th3, th4 = pt
-    if strictlyVal:
-        return (0 + strictlyVal <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi - strictlyVal))
+    if strictly:
+        return (0 + 1e-2 <= th2) and (th2 <= th3 - 1e-2) and (th3 <= th4 - 1e-2) and (th4 <= (2 * np.pi - 1e-2))
     return (0 - 1e-7 <= th2) and (th2 <= th3) and (th3 <= th4) and (th4 <= (2 * np.pi + 1e-7))
 
 
