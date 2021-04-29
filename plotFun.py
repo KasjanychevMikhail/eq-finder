@@ -54,13 +54,13 @@ def prepareTargetHeteroclinicsData(data):
 
     return TargetHeteroclinicsData
 
-def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, pathToDir, imageName):
+def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInterval, thirdParamVal, pathToDir, imageName):
     """
     (i, j, a, b, r, dist)
     """
     N = len(firstParamInterval)
     M = len(secondParamInterval)
-    valParamR = heteroclinicsData[0][4]
+
     colorGridDist = np.zeros((M, N))
 
     for data in heteroclinicsData:
@@ -72,7 +72,7 @@ def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInte
     plt.colorbar()
     plt.xlabel(r'$ \alpha $')
     plt.ylabel(r'$ \beta $')
-    plt.title("r={}".format(valParamR))
+    plt.title("r={}".format(thirdParamVal))
     fullOutputName = os.path.join(pathToDir, imageName + '.png')
     plt.savefig(fullOutputName)
 

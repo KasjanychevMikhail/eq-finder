@@ -5,7 +5,7 @@ import SystOsscills as a4d
 from scipy.spatial import distance
 
 
-def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, rhs, rhsJac, phSpaceTransformer, sepCondition, eqTransformer, sepNumCondition, sepProximity, maxTime, listEqCoords3D = None):
+def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, rhs, rhsJac, phSpaceTransformer, sepCondition, eqTransformer, sepNumCondition, sepProximity, maxTime, listEqCoords = None):
     """
     Accepts pairsToCheck — a list of pairs of Equilibria — and checks if there is
     an approximate connection between them. First equilibrium of pair
@@ -24,8 +24,8 @@ def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.
         alphaEqTr = phSpaceTransformer(alphaEq, rhsJac)
         omegaEqsTr = [phSpaceTransformer(oEq, rhsJac) for oEq in omegaEqs]
         fullOmegaEqsTr = itls.chain.from_iterable([eqTransformer(oEq, rhsJac) for oEq in omegaEqsTr])
-        if listEqCoords3D:
-            events = sf.createListOfEvents(alphaEqTr, listEqCoords3D, ps, proxs)
+        if listEqCoords:
+            events = sf.createListOfEvents(alphaEqTr, listEqCoords, ps, proxs)
         separatrices, integrTimes = sf.computeSeparatrices(alphaEqTr, rhs, ps, maxTime, sepCondition, events)
 
         if not sepNumCondition(separatrices):
@@ -57,14 +57,36 @@ def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bo
 
     if withEvents:
         eqCoords3D = sf.listEqOnInvPlaneTo3D(planeEqCoords, osc)
+        allSymmEqs = itls.chain.from_iterable([sf.cirTransform(eq, jacReduced) for eq in eqCoords3D])
     else:
-        eqCoords3D = None
+        allSymmEqs = None
+    tresserPairs = sf.getSaddleSadfocPairs(planeEqCoords, osc, ps, needTresserPairs=True)
 
-    tresserPairs = sf.getTresserPairs(planeEqCoords, osc, ps)
-
-    cnctInfo = checkSeparatrixConnection(tresserPairs, ps, proxs, rhsInvPlane, jacInvPlane, sf.idTransform, sf.pickBothSeparatrices, sf.idListTransform, sf.anyNumber, proxs.toSinkPrxty, maxTime)
+    cnctInfo = checkSeparatrixConnection(tresserPairs, ps, proxs, rhsInvPlane, jacInvPlane, sf.idTransform, sf.pickBothSeparatrices, sf.idListTransform, sf.anyNumber, proxs.toSinkPrxty, maxTime, listEqCoords = planeEqCoords)
     newPairs = {(it['omega'], it['alpha']) for it in cnctInfo}
-    finalInfo = checkSeparatrixConnection(newPairs, ps, proxs, rhsReduced, jacReduced, sf.embedBackTransform, sf.pickCirSeparatrix, sf.cirTransform, sf.hasExactly(1), proxs.toSddlPrxty, maxTime, listEqCoords3D = eqCoords3D)
+    finalInfo = checkSeparatrixConnection(newPairs, ps, proxs, rhsReduced, jacReduced, sf.embedBackTransform, sf.pickCirSeparatrix, sf.cirTransform, sf.hasExactly(1), proxs.toSddlPrxty, maxTime, listEqCoords = allSymmEqs)
+    return finalInfo
+
+def checkSadfoc_SaddleHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
+    rhsInvPlane = osc.getRestriction
+    jacInvPlane = osc.getRestrictionJac
+    rhsReduced = osc.getReducedSystem
+    jacReduced = osc.getReducedSystemJac
+
+
+    planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
+
+    if withEvents:
+        eqCoords3D = sf.listEqOnInvPlaneTo3D(planeEqCoords, osc)
+        allSymmEqs = itls.chain.from_iterable([sf.cirTransform(eq, jacReduced) for eq in eqCoords3D])
+    else:
+        allSymmEqs = None
+
+    saddleSadfocPairs = sf.getSaddleSadfocPairs(planeEqCoords, osc, ps)
+    cnctInfo = checkSeparatrixConnection(saddleSadfocPairs, ps, proxs, rhsInvPlane, jacInvPlane, sf.idTransform, sf.pickBothSeparatrices, sf.idListTransform, sf.anyNumber, proxs.toSinkPrxty, maxTime, listEqCoords = planeEqCoords)
+    newPairs = {(it['omega'], it['alpha']) for it in cnctInfo}
+    finalInfo = checkSeparatrixConnection(newPairs, ps, proxs, rhsReduced, jacReduced, sf.embedBackTransform, sf.pickCirSeparatrix, sf.cirTransform, sf.hasExactly(1), proxs.toSddlPrxty, maxTime, listEqCoords = allSymmEqs)
+
     return finalInfo
 
 def checkTargetHeteroclinicInInterval(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, lowerLimit):
