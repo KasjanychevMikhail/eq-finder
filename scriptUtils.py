@@ -25,6 +25,8 @@ def getPrecisionSettings(dictConfig):
 def getProximitySettings(dictConfig):
     prox = sf.ProximitySettings(toSinkPrxtyEv = dictConfig['ConnectionProximity']['toSinkPrxtyEv'],
                                 toSddlPrxtyEv = dictConfig['ConnectionProximity']['toSddlPrxtyEv'],
+                                toTargetSinkPrxtyEv=dictConfig['ConnectionProximity']['toTargetSinkPrxtyEv'],
+                                toTargetSddlPrxtyEv=dictConfig['ConnectionProximity']['toTargetSddlPrxtyEv'],
                                 toSinkPrxty = dictConfig['ConnectionProximity']['toSinkPrxty'],
                                 toSddlPrxty = dictConfig['ConnectionProximity']['toSddlPrxty'])
     return prox

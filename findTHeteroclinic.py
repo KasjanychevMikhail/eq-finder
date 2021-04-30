@@ -23,9 +23,9 @@ def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.
     for alphaEq, omegaEqs in grpByAlphaEq.items():
         alphaEqTr = phSpaceTransformer(alphaEq, rhsJac)
         omegaEqsTr = [phSpaceTransformer(oEq, rhsJac) for oEq in omegaEqs]
-        fullOmegaEqsTr = itls.chain.from_iterable([eqTransformer(oEq, rhsJac) for oEq in omegaEqsTr])
+        fullOmegaEqsTr = list(itls.chain.from_iterable([eqTransformer(oEq, rhsJac) for oEq in omegaEqsTr]))
         if listEqCoords:
-            events = sf.createListOfEvents(alphaEqTr, listEqCoords, ps, proxs)
+            events = sf.createListOfEvents(alphaEqTr, fullOmegaEqsTr, listEqCoords, ps, proxs)
         separatrices, integrTimes = sf.computeSeparatrices(alphaEqTr, rhs, ps, maxTime, sepCondition, events)
 
         if not sepNumCondition(separatrices):

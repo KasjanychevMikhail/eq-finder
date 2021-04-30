@@ -55,18 +55,25 @@ STD_PRECISION = PrecisionSettings(zeroImagPartEps=1e-14,
                                   )
 
 class ProximitySettings:
-    def __init__(self, toSinkPrxtyEv, toSddlPrxtyEv, toSinkPrxty, toSddlPrxty):
+    def __init__(self, toSinkPrxtyEv, toSddlPrxtyEv, toTargetSinkPrxtyEv, toTargetSddlPrxtyEv, toSinkPrxty, toSddlPrxty):
         assert toSinkPrxtyEv > 0, "Precision must be greater than zero!"
         assert toSddlPrxtyEv > 0, "Precision must be greater than zero!"
+        assert toTargetSinkPrxtyEv > 0, "Precision must be greater than zero!"
+        assert toTargetSddlPrxtyEv > 0, "Precision must be greater than zero!"
         assert toSinkPrxty > 0, "Precision must be greater than zero!"
         assert toSddlPrxty > 0, "Precision must be greater than zero!"
+
         self.toSinkPrxtyEv = toSinkPrxtyEv
         self.toSddlPrxtyEv = toSddlPrxtyEv
+        self.toTargetSinkPrxtyEv = toTargetSinkPrxtyEv
+        self.toTargetSddlPrxtyEv = toTargetSddlPrxtyEv
         self.toSinkPrxty = toSinkPrxty
         self.toSddlPrxty = toSddlPrxty
 
-STD_PROXIMITY = ProximitySettings(toSinkPrxtyEv=9*1e-6,
-                                  toSddlPrxtyEv=9*1e-3,
+STD_PROXIMITY = ProximitySettings(toSinkPrxtyEv=1e-6,
+                                  toSddlPrxtyEv=1e-3,
+                                  toTargetSinkPrxtyEv=9*1e-6,
+                                  toTargetSddlPrxtyEv=9*1e-6,
                                   toSinkPrxty=1e-5,
                                   toSddlPrxty=1e-2
                                   )
@@ -451,19 +458,32 @@ def isSourсe(eq, ps: PrecisionSettings):
     eqType = eq.getEqType(ps)
     return eqType[0] == 0 and eqType[1] == 0
 
-def createListOfEvents(startEq, eqList, ps: PrecisionSettings, proxs: ProximitySettings):
+def createListOfEvents(startEq, targetEqs, eqList, ps: PrecisionSettings, proxs: ProximitySettings):
     listEvents = []
 
     for eq in eqList:
         if eq.coordinates != startEq.coordinates:
+            isTargetEq = False
+
             coords = eq.coordinates
+
+            for targetEq in targetEqs:
+                if targetEq.coordinates == eq.coordinates:
+                    isTargetEq = True
+
             if isSaddle(eq, ps):
-                event = constructDistEvent(coords, proxs.toSddlPrxtyEv)
+                if isTargetEq:
+                    event = constructDistEvent(coords, proxs.toTargetSddlPrxtyEv)
+                else:
+                    event = constructDistEvent(coords, proxs.toSddlPrxtyEv)
                 event.terminal = True
                 event.direction = -1
                 listEvents.append(event)
             elif isSink(eq, ps):
-                event = constructDistEvent(coords, proxs.toSinkPrxtyEv)
+                if isTargetEq:
+                    event = constructDistEvent(coords, proxs.toTargetSinkPrxtyEv)
+                else:
+                    event = constructDistEvent(coords, proxs.toSinkPrxtyEv)
                 event.terminal = True
                 event.direction = -1
                 listEvents.append(event)
