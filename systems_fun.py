@@ -222,6 +222,7 @@ def createEqList(allEquilibria, rhsJac, ps: PrecisionSettings):
         allEquilibria = sorted(allEquilibria, key=lambda ar: tuple(ar))
     EqList = []
     for eqCoords in allEquilibria:
+        EqList.append(getEquilibriumInfo(getSymmetricPointOnPlane(eqCoords), rhsJac))
         EqList.append(getEquilibriumInfo(eqCoords, rhsJac))
     # подумать, может всё-таки фильтрацию по близости/типу
     # сделать отдельной функцией??
@@ -387,7 +388,11 @@ def T(X):
     x, y, z = X
     return [y - x, z - x, 2 * np.pi - x]
 
-
+def getSymmetricPointOnPlane(pt2d):
+    pt2d = list(pt2d)
+    pt3d = [0] + pt2d
+    res = T(T(T(T(pt3d))))
+    return res[1:]
 def generateSymmetricPoints(pt):
     return [pt, T(pt), T(T(pt)), T(T(T(pt)))]
 
