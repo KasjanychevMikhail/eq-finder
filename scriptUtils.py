@@ -1,6 +1,15 @@
 import numpy as np
 import systems_fun as sf
 
+def getGridR(dictConfig):
+    N = dictConfig['Parameters']['r_N']  # Количество разбиений параметра r
+
+    rs = np.linspace(dictConfig['Parameters']['r_min'], dictConfig['Parameters']['r_max'], N)
+
+    a = dictConfig['Parameters']['aval']
+    b = dictConfig['Parameters']['bval']
+    return (N, a, b, rs)
+
 def getGrid(dictConfig):
     N = dictConfig['Parameters']['a_N']  # Количество разбиений параметра альфа
     M = dictConfig['Parameters']['b_N']  # Количество разбиений параметра бета
