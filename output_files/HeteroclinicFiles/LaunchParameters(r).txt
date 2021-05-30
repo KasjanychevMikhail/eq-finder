@@ -16,12 +16,17 @@
  'toSinkPrxty': 1.1*1e-5,
  'toSddlPrxty': 1.1*1e-2,
 },
+'ParametersShgoEqFinder':
+{'numOfSamp': 1000,
+'numOfIters': 50,
+'compareWith': 1e-10,
+},
 'Parameters':
 {'aval': -2.911209192326542,
 'bval': -1.612684228842761,
 'r_min': 2.38,
 'r_max': 3,
-'r_N': 1001,
+'r_N': 11,
 'useEvents': True,
 },
 }

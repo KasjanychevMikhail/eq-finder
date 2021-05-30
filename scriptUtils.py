@@ -20,6 +20,14 @@ def getGrid(dictConfig):
     r = dictConfig['Parameters']['rval']
     return ( N, M, alphas, betas, r)
 
+def getParamsSHGO(dictConfig):
+
+    numOfSamp = dictConfig['ParametersShgoEqFinder']['numOfSamp']
+    numOfIters = dictConfig['ParametersShgoEqFinder']['numOfIters']
+    valToCompareWith = dictConfig['ParametersShgoEqFinder']['compareWith']
+
+    return(numOfSamp, numOfIters, valToCompareWith)
+
 def getPrecisionSettings(dictConfig):
     ps = sf.PrecisionSettings(zeroImagPartEps=dictConfig['NumericTolerance']['zeroImagPartEps'],
                               zeroRealPartEps=dictConfig['NumericTolerance']['zeroRealPartEps'],

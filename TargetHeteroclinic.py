@@ -16,12 +16,13 @@ from functools import partial
 bounds = [(-0.1, +2 * np.pi + 0.1), (-0.1, +2 * np.pi + 0.1)]
 bordersEq = [(-1e-15, +2 * np.pi + 1e-15), (-1e-15, +2 * np.pi + 1e-15)]
 
-def workerCheckTarget(params, paramR, events, pset: sf.PrecisionSettings, proxs: sf.ProximitySettings):
+def workerCheckTarget(params, paramR, events, pset: sf.PrecisionSettings, proxs: sf.ProximitySettings, eqFinderParams):
     (i, a), (j, b) = params
     r = paramR
     ud = [0.5, a, b, r]
     osc = a4d.FourBiharmonicPhaseOscillators(ud[0], ud[1], ud[2], ud[3])
-    eqf = sf.ShgoEqFinder(300, 30, 1e-10)
+    nSamp, nIters, zeroToCompare = eqFinderParams
+    eqf = sf.ShgoEqFinder(nSamp, nIters, zeroToCompare)
     result = fth.checkTargetHeteroclinic(osc, bordersEq, bounds, eqf, pset, proxs, 1000., events)
     return i, j, a, b, r, result
 
@@ -41,6 +42,7 @@ if __name__ == "__main__":
     timeOfRun = datetime.datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
 
     N, M, alphas, betas, r = su.getGrid(configDict)
+    eqFinderParams = su.getParamsSHGO(configDict)
 
     ps = su.getPrecisionSettings(configDict)
     prox = su.getProximitySettings(configDict)
@@ -49,7 +51,7 @@ if __name__ == "__main__":
 
     pool = mp.Pool(mp.cpu_count())
     start = time.time()
-    ret = pool.map(partial(workerCheckTarget, paramR = r,events = evtFlag, pset = ps, proxs = prox), itls.product(enumerate(alphas), enumerate(betas)))
+    ret = pool.map(partial(workerCheckTarget, paramR = r,events = evtFlag, pset = ps, proxs = prox, eqFinderParams = eqFinderParams), itls.product(enumerate(alphas), enumerate(betas)))
     end = time.time()
     pool.close()
 
