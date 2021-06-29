@@ -31,7 +31,7 @@ end
 function getLyapunovData(params)
     i, j, a, b, r, startPtX, startPtY, startPtZ = params
     a4d = ContinuousDynamicalSystem(ReducedSystem, rand(3), [0.5,a,b,r], ReducedSystemJac)
-    λ = lyapunov(a4d, 10000.0, u0 = [startPtX, startPtY, startPtZ], dt = 0.1, Ttr = 10.0)
+    λ = lyapunov(a4d, 100000.0, u0 = [startPtX, startPtY, startPtZ], dt = 0.1, Ttr = 10.0)
     return[i, j, a, b, r, λ]
 end
 end

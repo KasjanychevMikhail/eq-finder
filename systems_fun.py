@@ -73,7 +73,7 @@ class ProximitySettings:
 STD_PROXIMITY = ProximitySettings(toSinkPrxtyEv=1e-6,
                                   toSddlPrxtyEv=1e-3,
                                   toTargetSinkPrxtyEv=9*1e-6,
-                                  toTargetSddlPrxtyEv=9*1e-6,
+                                  toTargetSddlPrxtyEv=9*1e-3,
                                   toSinkPrxty=1e-5,
                                   toSddlPrxty=1e-2
                                   )
