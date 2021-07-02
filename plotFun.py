@@ -186,3 +186,39 @@ def saveStartPtsDataAsTxt(prepStartPtsData, pathToDir, fileName ):
         fullOutputName = os.path.join(pathToDir, fileName + '.txt')
         np.savetxt(fullOutputName, prepStartPtsData, header=headerStr,
                    fmt=fmtList)
+
+def prepareTresserPairsData(data):
+    """
+        Expects elements to be tuples in form (i, j, a, b, r, result)
+        """
+    pairsTresserData=[]
+    sortedData = sorted(data, key=lambda X: (X[0], X[1]))
+    for d in sortedData:
+        i, j, alpha, beta, r, listOfPairsTresser = d
+        if listOfPairsTresser:
+            for pair in listOfPairsTresser:
+                saddle, sadFoc = pair
+                saddlePtY, saddlePtZ = saddle.coordinates
+                sadfocPtY, sadfocPtZ = sadFoc.coordinates
+                pairsTresserData.append((i, j, alpha, beta, r, saddlePtY, saddlePtZ, sadfocPtY, sadfocPtZ))
+
+    return pairsTresserData
+
+def savePairsTresserDataAsTxt(prepStartPtsData, pathToDir, fileName ):
+    if prepStartPtsData:
+        headerStr = (
+                'i  j  alpha  beta r saddlePtY saddlePtZ sadfocPtY sadfocPtZ\n' +
+                '0  1  2      3    4 5         6         7         8')
+        fmtList = ['%2u',
+                   '%2u',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',]
+
+        fullOutputName = os.path.join(pathToDir, fileName + '.txt')
+        np.savetxt(fullOutputName, prepStartPtsData, header=headerStr,
+                   fmt=fmtList)

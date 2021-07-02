@@ -17,18 +17,18 @@ from functools import partial
 bounds = [(-0.1, +2 * np.pi + 0.1), (-0.1, +2 * np.pi + 0.1)]
 bordersEq = [(-1e-15, +2 * np.pi + 1e-15), (-1e-15, +2 * np.pi + 1e-15)]
 
-def workerStartPts(params, paramR, pset: sf.PrecisionSettings):
+def workerTresserPairs(params, paramR, pset: sf.PrecisionSettings):
     (i, a), (j, b) = params
     r = paramR
     ud = [0.5, a, b, r]
     osc = a4d.FourBiharmonicPhaseOscillators(ud[0], ud[1], ud[2], ud[3])
     eqf = sf.ShgoEqFinder(300, 30, 1e-10)
-    result = fth.getStartPtsForLyapVals(osc, bordersEq, bounds, eqf, pset, OnlySadFoci = False)
+    result = fth.getTresserPairs(osc, bordersEq, bounds, eqf, pset)
     return i, j, a, b, r, result
 
 if __name__ == "__main__":
     if '-h' in sys.argv or '--help' in sys.argv:
-        print("Usage: python StartPtForLyapunovVals.py <pathToConfig> <outputMask> <outputDir>"
+        print("Usage: python TresserPairs.py <pathToConfig> <outputMask> <outputDir>"
               "\n    pathToConfig: full path to configuration file (e.g., \"./cfg.txt\")"
               "\n    outputMask: unique name that will be used for saving output"
               "\n    outputDir: directory to which the results are saved")
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     pool = mp.Pool(mp.cpu_count())
     start = time.time()
-    ret = pool.map(partial(workerStartPts, paramR = r, pset = ps), itls.product(enumerate(alphas), enumerate(betas)))
+    ret = pool.map(partial(workerTresserPairs, paramR = r, pset = ps), itls.product(enumerate(alphas), enumerate(betas)))
     end = time.time()
     pool.close()
 
@@ -56,5 +56,5 @@ if __name__ == "__main__":
 
     outputFileMask = "{}_{}x{}_{}".format(nameOutputFile, N, M, timeOfRun)
     print("Took {}s".format(end - start))
-    pf.saveStartPtsDataAsTxt(pf.prepareStartPtsData(ret), pathToOutputDir
+    pf.savePairsTresserDataAsTxt(pf.prepareTresserPairsData(ret), pathToOutputDir
                              , outputFileMask)

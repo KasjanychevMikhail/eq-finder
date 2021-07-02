@@ -112,3 +112,13 @@ def getStartPtsForLyapVals(osc: a4d.FourBiharmonicPhaseOscillators, borders, bou
 
         outputInfo.append(startPts)
     return outputInfo
+
+def getTresserPairs(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings):
+    rhsInvPlane = osc.getRestriction
+    jacInvPlane = osc.getRestrictionJac
+
+    planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
+
+    tresserPairs = sf.getSaddleSadfocPairs(planeEqCoords, osc, ps, needTresserPairs=True)
+
+    return tresserPairs
