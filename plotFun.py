@@ -34,6 +34,34 @@ def saveHeteroclinicsDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
         fullOutputName = os.path.join(pathToDir, fileName+'.txt')
         np.savetxt(fullOutputName, HeteroclinicsData, header=headerStr, fmt=fmtList)
 
+def saveHeteroclinicSfDataAsTxt(HeteroclinicsData, pathToDir, fileName ):
+    """
+    (i, j, a, b, r, dist, timeIntegration, coordsStartPt, coordsSadfoc, coordsSaddle)
+    """
+    if HeteroclinicsData:
+        headerStr = (
+                'i  j  alpha  beta  r  distTrajToEq  integrationTime  startPtX  startPtY  startPtZ  sadfoc1dUnPtX  sadfoc1dUnPtY  sadfoc1dUnPtZ  sadfoc1dStPtX  sadfoc1dStPtY  sadfoc1dStPtZ\n' +
+                '0  1  2      3     4  5             6                7         8         9         10             11             12             13             14             15')
+        fmtList = ['%2u',
+                   '%2u',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   '%+18.15f',
+                   ]
+        fullOutputName = os.path.join(pathToDir, fileName+'.txt')
+        np.savetxt(fullOutputName, HeteroclinicsData, header=headerStr, fmt=fmtList)
+
 def prepareTargetHeteroclinicsData(data):
     """
         Accepts result of running heteroclinics analysis on grid.

@@ -122,3 +122,24 @@ def getTresserPairs(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eq
     tresserPairs = sf.getSaddleSadfocPairs(planeEqCoords, osc, ps, needTresserPairs=True)
 
     return tresserPairs
+
+def checkHeterocninicSf1Sf2(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
+    rhsInvPlane = osc.getRestriction
+    jacInvPlane = osc.getRestrictionJac
+    rhsReduced = osc.getReducedSystem
+    jacReduced = osc.getReducedSystemJac
+
+    planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
+
+    if withEvents:
+        eqCoords3D = sf.listEqOnInvPlaneTo3D(planeEqCoords, osc)
+        allSymmEqs = itls.chain.from_iterable([sf.cirTransform(eq, jacReduced) for eq in eqCoords3D])
+    else:
+        allSymmEqs = None
+
+    pairsSfs = sf.getSadfocsPairs(planeEqCoords, osc, ps)
+
+    finalInfo = checkSeparatrixConnection(pairsSfs, ps, proxs, rhsReduced, jacReduced, sf.embedBackTransform,
+                                          sf.pickCirSeparatrix, sf.cirTransform, sf.hasExactly(1), proxs.toSddlPrxty,
+                                          maxTime, listEqCoords=allSymmEqs)
+    return finalInfo

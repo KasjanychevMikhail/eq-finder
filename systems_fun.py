@@ -337,6 +337,9 @@ def isPtInUpperTriangle(ptOnPlane, ps: PrecisionSettings):
 def isStable2DFocus(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 0, 1, 0]
 
+def isUnstable2DFocus(eq, ps: PrecisionSettings):
+    return eq.getEqType(ps) == [0, 0, 2, 0, 1]
+
 def isStable2DNode(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 0, 0, 0]
 
@@ -345,6 +348,9 @@ def is2DSaddle(eq, ps: PrecisionSettings):
 
 def is3DSaddleFocusWith1dU(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 1, 1, 0]
+
+def is3DSaddleFocusWith1dS(eq, ps: PrecisionSettings):
+    return eq.getEqType(ps) == [1, 0, 2, 0, 1]
 
 def is3DSaddleWith1dU(eq, ps: PrecisionSettings):
     return eq.getEqType(ps) == [2, 0, 1, 0, 0]
@@ -520,3 +526,20 @@ def embedBackTransform(X: Equilibrium, rhsJac):
 def cirTransform(eq: Equilibrium, rhsJac):
     coords = generateSymmetricPoints(eq.coordinates)
     return [getEquilibriumInfo(cd, rhsJac) for cd in coords]
+
+def getSadfocsPairs(eqList, rhs, ps: PrecisionSettings):
+    sadFocsWith1dU = []
+    sadFocsWith1dS = []
+    for eq in eqList:
+        ptOnInvPlane = eq.coordinates
+        eqOnPlaneIn3D = embedBackTransform(eq, rhs.getReducedSystemJac)
+        if (isPtInUpperTriangle(ptOnInvPlane, ps)):
+            if (isStable2DFocus(eq, ps) and is3DSaddleFocusWith1dU(eqOnPlaneIn3D, ps)):
+                sadFocsWith1dU.append((eq, eqOnPlaneIn3D))
+            elif (isUnstable2DFocus(eq, ps) and is3DSaddleFocusWith1dS(eqOnPlaneIn3D, ps)):
+                sadFocsWith1dS.append((eq, eqOnPlaneIn3D))
+    conf = []
+    for sf2DSt, sf3DWith1dU in sadFocsWith1dU:
+        for sd2DUnst, sd3DWith1dS in sadFocsWith1dS:
+            conf.append((sf2DSt, sd2DUnst))
+    return conf
