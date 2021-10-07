@@ -142,7 +142,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.ShgoEqFinder(300, 30, 1e-10), stdPS)
+                                 sf.ShgoEqFinder(1000, 1, 1e-10), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
@@ -155,7 +155,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.ShgoEqFinder(1000, 100,1e-15), stdPS)
+                                 sf.ShgoEqFinder(1000, 1, 1e-10), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
@@ -167,7 +167,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.ShgoEqFinder(300, 10,4e-14), stdPS)
+                                 sf.ShgoEqFinder(1000, 1, 1e-10), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
@@ -179,7 +179,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinder(21, 21,1e-15), stdPS)
+                                 sf.NewtonEqFinder(21, 21, 1e-15), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
@@ -191,7 +191,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinder(61, 61,1e-18), stdPS)
+                                 sf.NewtonEqFinder(61, 61, 1e-18), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
@@ -203,7 +203,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinder(61, 61,1e-18), stdPS)
+                                 sf.NewtonEqFinder(61, 61, 1e-18), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
@@ -216,7 +216,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinderUp(81, 81,1e-20), stdPS)
+                                 sf.NewtonEqFinderUp(81, 81, 1e-20), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
@@ -228,7 +228,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinderUp(71, 71,1e-16), stdPS)
+                                 sf.NewtonEqFinderUp(71, 71, 1e-16), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
@@ -240,7 +240,7 @@ class TestFindEquilibria:
         rhsCurrent = lambda X: self.rhs(X, ud)
         rhsJacCurrent = lambda X: self.rhsJac(X, ud)
         res = sf.findEquilibria(rhsCurrent, rhsJacCurrent, self.bounds, self.borders,
-                                 sf.NewtonEqFinderUp(101, 101,8e-17), stdPS)
+                                 sf.NewtonEqFinderUp(101, 101, 8e-17), stdPS)
         data = []
         for eq in res:
             data.append(eq.getEqType(stdPS)[0:3])
