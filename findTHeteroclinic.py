@@ -46,7 +46,7 @@ def checkSeparatrixConnection(pairsToCheck, ps: sf.PrecisionSettings, proxs: sf.
 
     return outputInfo
 
-def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
+def checkTargetHeteroclinic(osc: a4d.FivePhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
     rhsInvPlane = osc.getRestriction
     jacInvPlane = osc.getRestrictionJac
     rhsReduced = osc.getReducedSystem
@@ -67,7 +67,7 @@ def checkTargetHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bo
     finalInfo = checkSeparatrixConnection(newPairs, ps, proxs, rhsReduced, jacReduced, sf.embedBackTransform, sf.pickCirSeparatrix, sf.cirTransform, sf.hasExactly(1), proxs.toSddlPrxty, maxTime, listEqCoords = allSymmEqs)
     return finalInfo
 
-def checkSadfoc_SaddleHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
+def checkSadfoc_SaddleHeteroclinic(osc: a4d.FivePhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
     rhsInvPlane = osc.getRestriction
     jacInvPlane = osc.getRestrictionJac
     rhsReduced = osc.getReducedSystem
@@ -89,7 +89,7 @@ def checkSadfoc_SaddleHeteroclinic(osc: a4d.FourBiharmonicPhaseOscillators, bord
 
     return finalInfo
 
-def checkTargetHeteroclinicInInterval(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, lowerLimit):
+def checkTargetHeteroclinicInInterval(osc: a4d.FivePhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, lowerLimit):
     info = checkTargetHeteroclinic(osc, borders, bounds, eqFinder, ps, proxs, maxTime)
     finalInfo = []
     for dic in info:
@@ -97,7 +97,7 @@ def checkTargetHeteroclinicInInterval(osc: a4d.FourBiharmonicPhaseOscillators, b
             finalInfo.append(dic)
     return finalInfo
 
-def getStartPtsForLyapVals(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, OnlySadFoci):
+def getStartPtsForLyapVals(osc: a4d.FivePhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, OnlySadFoci):
     rhsInvPlane = osc.getRestriction
     jacInvPlane = osc.getRestrictionJac
     planeEqCoords = sf.findEquilibria(rhsInvPlane, jacInvPlane, bounds, borders, eqFinder, ps)
@@ -113,7 +113,7 @@ def getStartPtsForLyapVals(osc: a4d.FourBiharmonicPhaseOscillators, borders, bou
         outputInfo.append(startPts)
     return outputInfo
 
-def getTresserPairs(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings):
+def getTresserPairs(osc: a4d.FivePhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings):
     rhsInvPlane = osc.getRestriction
     jacInvPlane = osc.getRestrictionJac
 
@@ -123,7 +123,7 @@ def getTresserPairs(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eq
 
     return tresserPairs
 
-def checkHeterocninicSf1Sf2(osc: a4d.FourBiharmonicPhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
+def checkHeterocninicSf1Sf2(osc: a4d.FivePhaseOscillators, borders, bounds, eqFinder, ps: sf.PrecisionSettings, proxs: sf.ProximitySettings, maxTime, withEvents = False):
     rhsInvPlane = osc.getRestriction
     jacInvPlane = osc.getRestrictionJac
     rhsReduced = osc.getReducedSystem

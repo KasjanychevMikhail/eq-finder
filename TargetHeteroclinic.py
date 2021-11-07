@@ -19,8 +19,8 @@ bordersEq = [(-1e-15, +2 * np.pi + 1e-15), (-1e-15, +2 * np.pi + 1e-15)]
 def workerCheckTarget(params, paramR, events, pset: sf.PrecisionSettings, proxs: sf.ProximitySettings, eqFinderParams):
     (i, a), (j, b) = params
     r = paramR
-    ud = [0.5, a, b, r]
-    osc = a4d.FourBiharmonicPhaseOscillators(ud[0], ud[1], ud[2], ud[3])
+    ud = [-0.3, 0.3, 0.02, 0.8, 0.02, a, b, 0., 1.73, 0., 1.]
+    osc = a4d.FivePhaseOscillators(ud[0], ud[1], ud[2], ud[3], ud[4], ud[5], ud[6], ud[7], ud[8], ud[9], ud[10])
     nSamp, nIters, zeroToCompare = eqFinderParams
     eqf = sf.ShgoEqFinder(nSamp, nIters, zeroToCompare)
     result = fth.checkTargetHeteroclinic(osc, bordersEq, bounds, eqf, pset, proxs, 1000., events)
