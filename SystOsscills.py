@@ -1,5 +1,4 @@
 import numpy as np
-import sympy as sp
 
 class FivePhaseOscillators:
     def __init__(self, paramE1, paramE2, paramE3, paramE4, paramE5, paramX1, paramX2, paramX3, paramX4, paramX5,
@@ -553,8 +552,3 @@ class FivePhaseOscillators:
     def getParams(self):          
         return [self.paramE1,self.paramE2,self.paramE3,self.paramE4, self.paramE5, self.paramX1, self.paramX2,
                 self.paramX3, self.paramX4, self.paramX5. self.paramEps]
-
-#sym = sp.symbols('self.paramE1, self.paramE2, self.paramE3, self.paramE4, self.paramE5, self.paramX1, self.paramX2, self.paramX3, self.paramX4, self.paramX5, self.paramEps, psis[1], psis[2], psis[3]')
-#sys = FivePhaseOscillators(sym[0], sym[1], sym[2], sym[3], sym[4], sym[5], sym[6], sym[7], sym[8], sym[9], sym[10])
-#syst = sys.getSystemS()
-#print(sp.diff(syst[3], sym[13]))
