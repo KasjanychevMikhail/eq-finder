@@ -11,13 +11,13 @@ def getGridR(dictConfig):
     return (N, a, b, rs)
 
 def getGrid(dictConfig):
-    N = dictConfig['Parameters']['a_N']  # Количество разбиений параметра альфа
-    M = dictConfig['Parameters']['b_N']  # Количество разбиений параметра бета
+    N = dictConfig['Parameters']['x1_N']  # Количество разбиений параметра X1
+    M = dictConfig['Parameters']['x2_N']  # Количество разбиений параметра X2
 
-    alphas = np.linspace(dictConfig['Parameters']['a_min'], dictConfig['Parameters']['a_max'], N)
-    betas = np.linspace(dictConfig['Parameters']['b_min'], dictConfig['Parameters']['b_max'], M)
+    alphas = np.linspace(dictConfig['Parameters']['x1_min'], dictConfig['Parameters']['x1_max'], N)
+    betas = np.linspace(dictConfig['Parameters']['x2_min'], dictConfig['Parameters']['x2_max'], M)
 
-    r = dictConfig['Parameters']['rval']
+    r = dictConfig['Parameters']['x4val']
     return ( N, M, alphas, betas, r)
 
 def getParamsSHGO(dictConfig):

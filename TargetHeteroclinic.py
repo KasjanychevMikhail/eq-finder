@@ -17,14 +17,14 @@ bounds = [(-0.1, +2 * np.pi + 0.1), (-0.1, +2 * np.pi + 0.1)]
 bordersEq = [(-1e-15, +2 * np.pi + 1e-15), (-1e-15, +2 * np.pi + 1e-15)]
 
 def workerCheckTarget(params, paramR, events, pset: sf.PrecisionSettings, proxs: sf.ProximitySettings, eqFinderParams):
-    (i, a), (j, b) = params
-    r = paramR
-    ud = [-0.3, 0.3, 0.02, 0.8, 0.02, a, b, 0., 1.73, 0., 1.]
+    (i, x1), (j, x2) = params
+    x4 = paramR
+    ud = [-0.3, 0.3, 0.02, 0.8, 0.02, x1, x2, 0., x4, 0., 1.]
     osc = a4d.FivePhaseOscillators(ud[0], ud[1], ud[2], ud[3], ud[4], ud[5], ud[6], ud[7], ud[8], ud[9], ud[10])
     nSamp, nIters, zeroToCompare = eqFinderParams
     eqf = sf.ShgoEqFinder(nSamp, nIters, zeroToCompare)
     result = fth.checkTargetHeteroclinic(osc, bordersEq, bounds, eqf, pset, proxs, 1000., events)
-    return i, j, a, b, r, result
+    return i, j, x1, x2, x4, result
 
 if __name__ == "__main__":
     if '-h' in sys.argv or '--help' in sys.argv:
