@@ -98,9 +98,11 @@ def plotHeteroclinicsData(heteroclinicsData, firstParamInterval ,secondParamInte
 
     plt.pcolormesh(firstParamInterval, secondParamInterval, colorGridDist, cmap=plt.cm.get_cmap('binary'))
     plt.colorbar()
-    plt.xlabel(r'$ \alpha $')
-    plt.ylabel(r'$ \beta $')
-    plt.title("r={}".format(thirdParamVal))
+    #plt.xlabel(r'$ \alpha $')
+    #plt.ylabel(r'$ \beta $')
+    plt.xlabel("X1")
+    plt.ylabel("X2")
+    plt.title("X4={}".format(thirdParamVal))
     fullOutputName = os.path.join(pathToDir, imageName + '.png')
     plt.savefig(fullOutputName)
 
