@@ -22,13 +22,13 @@
 'compareWith': 1e-10,
 },
 'Parameters':
-{'x4val': 1.0,
+{'x4val': 1.73,
 'x1_min': 0.2 -0.1,
 'x1_max': 0.2 +0.1,
-'x1_N': 11,
+'x1_N': 3,
 'x2_min': 0.316 -0.1,
 'x2_max': 0.316 +0.1,
-'x2_N': 11,
+'x2_N': 3,
 'useEvents': True,
 },
 }
