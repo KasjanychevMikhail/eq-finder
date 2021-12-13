@@ -1,4 +1,5 @@
 import numpy as np
+import math as m
 
 class FivePhaseOscillators:
     def __init__(self, paramE1, paramE2, paramE3, paramE4, paramE5, paramX1, paramX2, paramX3, paramX4, paramX5,
@@ -16,16 +17,16 @@ class FivePhaseOscillators:
         self.paramEps = paramEps
 
     def funcG2(self, phi):
-        return self.paramE1 * np.cos(phi + self.paramX1) + self.paramE2 * np.cos(2 * phi + self.paramX2)
+        return self.paramE1 * m.cos(phi + self.paramX1) + self.paramE2 * m.cos(2 * phi + self.paramX2)
 
     def funcG3(self, phi):
-        return self.paramE3 * np.cos(phi + self.paramX3)
+        return self.paramE3 * m.cos(phi + self.paramX3)
 
     def funcG4(self, phi):
-        return self.paramE4 * np.cos(phi + self.paramX4)
+        return self.paramE4 * m.cos(phi + self.paramX4)
 
     def funcG5(self, phi):
-        return self.paramE5 * np.cos(phi + self.paramX5)
+        return self.paramE5 * m.cos(phi + self.paramX5)
 
     def sum1(self, psis, j):
         tmp = 0
@@ -74,16 +75,16 @@ class FivePhaseOscillators:
             return 0
 
     def funcG2d(self, phi):
-        return -self.paramE1 * np.sin(phi + self.paramX1) - self.paramE2 * np.cos(2 * phi + self.paramX2)
+        return -self.paramE1 * m.sin(phi + self.paramX1) - 2 * self.paramE2 * m.sin(2 * phi + self.paramX2)
 
     def funcG3d(self, phi):
-        return -self.paramE3 * np.sin(phi + self.paramX3)
+        return -self.paramE3 * m.sin(phi + self.paramX3)
 
     def funcG4d(self, phi):
-        return -self.paramE4 * np.sin(phi + self.paramX4)
+        return -self.paramE4 * m.sin(phi + self.paramX4)
 
     def funcG5d(self, phi):
-        return -self.paramE5 * np.sin(phi + self.paramX5)
+        return -self.paramE5 * m.sin(phi + self.paramX5)
 
     def sum1d(self, psis, j, idx):
         tmp = 0
@@ -99,7 +100,7 @@ class FivePhaseOscillators:
                 tmp += self.funcG3d(psis[k] + psis[l] - 2 * psis[j]) * \
                        (self.funcDelta(k, idx) + self.funcDelta(l, idx) - 2 * self.funcDelta(j, idx)) - \
                        self.funcG3d(psis[k] + psis[l] - 2 * psis[0]) * \
-                       (self.funcDelta(k, idx) + self.funcDelta(l,idx) - 2 * self.funcDelta(0, idx))
+                       (self.funcDelta(k, idx) + self.funcDelta(l, idx) - 2 * self.funcDelta(0, idx))
         return tmp
 
     def sum3d(self, psis, j, idx):
@@ -141,469 +142,6 @@ class FivePhaseOscillators:
                          self.paramEps / 16 * self.sum2d(psis, i, idx) + \
                          self.paramEps / 16 * self.sum3d(psis, i, idx) + self.paramEps / 64 * self.sum4d(psis, i, idx)
         return res[1:]
-
-    def f1x1(self, psis):
-        return self.paramEps*(-self.paramE1*np.sin(psis[1] - self.paramX1) +
-                              self.paramE1*np.sin(psis[1] + self.paramX1) +
-                              self.paramE1*np.sin(-psis[1] + psis[2] + self.paramX1) +
-                              self.paramE1*np.sin(-psis[1] + psis[3] + self.paramX1) -
-                              2*self.paramE2*np.sin(2*psis[1] - self.paramX2) +
-                              2*self.paramE2*np.sin(2*psis[1] + self.paramX2) +
-                              2*self.paramE2*np.sin(-2*psis[1] + 2*psis[2] + self.paramX2) +
-                              2*self.paramE2*np.sin(-2*psis[1] + 2*psis[3] + self.paramX2))/4 + \
-               self.paramEps*(-2*self.paramE3*np.sin(psis[1] - self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + self.paramX3) -
-                              2*self.paramE3*np.sin(2*psis[1] - self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[1] + self.paramX3) +
-                              4*self.paramE3*np.sin(-2*psis[1] + psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(-2*psis[1] + 2*psis[2] + self.paramX3) +
-                              4*self.paramE3*np.sin(-2*psis[1] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(-2*psis[1] + 2*psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(-psis[1] + psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(-psis[1] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[3] + self.paramX3) +
-                              4*self.paramE3*np.sin(-2*psis[1] + psis[2] + psis[3] + self.paramX3))/16 + \
-               self.paramEps*(-2*self.paramE4*np.sin(2*psis[1] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] + self.paramX4) +
-                              2*self.paramE4*np.sin(-2*psis[1] + 2*psis[2] + self.paramX4) +
-                              2*self.paramE4*np.sin(-2*psis[1] + 2*psis[3] + self.paramX4) +
-                              self.paramE4*np.sin(-psis[1] + psis[2] + self.paramX4) +
-                              self.paramE4*np.sin(-psis[1] + psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] - psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[2] - self.paramX4) -
-                              self.paramE4*np.sin(psis[1] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[3] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] - psis[2] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX4))/16 + \
-               self.paramEps*(-6*self.paramE5*np.sin(psis[1] - self.paramX5) +
-                              6*self.paramE5*np.sin(psis[1] + self.paramX5) -
-                              2*self.paramE5*np.sin(2*psis[1] - self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] + self.paramX5) +
-                              4*self.paramE5*np.sin(-2*psis[1] + psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(-2*psis[1] + 2*psis[2] + self.paramX5) +
-                              4*self.paramE5*np.sin(-2*psis[1] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-2*psis[1] + 2*psis[3] + self.paramX5) +
-                              5*self.paramE5*np.sin(-psis[1] + psis[2] + self.paramX5) +
-                              5*self.paramE5*np.sin(-psis[1] + psis[3] + self.paramX5) +
-                              self.paramE5*np.sin(psis[1] - psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[2] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] + self.paramX5) +
-                              self.paramE5*np.sin(psis[1] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] - psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] - psis[3] + self.paramX5) +
-                              4*self.paramE5*np.sin(-2*psis[1] + psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] + self.paramX5))/64
-
-    def f1x2(self, psis):
-        return self.paramEps*(self.paramE1*np.sin(psis[2] + self.paramX1) -
-                              self.paramE1*np.sin(-psis[1] + psis[2] + self.paramX1) +
-                              2*self.paramE2*np.sin(2*psis[2] + self.paramX2) -
-                              2*self.paramE2*np.sin(-2*psis[1] + 2*psis[2] + self.paramX2))/4 + \
-               self.paramEps*(2*self.paramE3*np.sin(psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[2] + self.paramX3) -
-                              2*self.paramE3*np.sin(-2*psis[1] + psis[2] + self.paramX3) -
-                              2*self.paramE3*np.sin(-2*psis[1] + 2*psis[2] + self.paramX3) -
-                              2*self.paramE3*np.sin(-psis[1] + psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[2] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(-2*psis[1] + psis[2] + psis[3] + self.paramX3))/16 + \
-               self.paramEps*(self.paramE4*np.sin(psis[2] - self.paramX4) +
-                              self.paramE4*np.sin(psis[2] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[2] + self.paramX4) -
-                              2*self.paramE4*np.sin(-2*psis[1] + 2*psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[1] + psis[2] + self.paramX4) +
-                              self.paramE4*np.sin(psis[1] - psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[2] - self.paramX4) -
-                              self.paramE4*np.sin(2*psis[1] - psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[2] + 2*psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[2] - psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX4))/16 + \
-               self.paramEps*(-self.paramE5*np.sin(psis[2] - self.paramX5) +
-                              5*self.paramE5*np.sin(psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[2] + self.paramX5) -
-                              2*self.paramE5*np.sin(-2*psis[1] + psis[2] + self.paramX5) -
-                              2*self.paramE5*np.sin(-2*psis[1] + 2*psis[2] + self.paramX5) -
-                              5*self.paramE5*np.sin(-psis[1] + psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] - psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[2] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(2*psis[1] - psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[2] + 2*psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[2] - psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(-2*psis[1] + psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] + self.paramX5))/64
-
-    def f1x3(self, psis):
-        return self.paramEps*(self.paramE1*np.sin(psis[3] + self.paramX1) -
-                              self.paramE1*np.sin(-psis[1] + psis[3] + self.paramX1) +
-                              2*self.paramE2*np.sin(2*psis[3] + self.paramX2) -
-                              2*self.paramE2*np.sin(-2*psis[1] + 2*psis[3] + self.paramX2))/4 + \
-               self.paramEps*(2*self.paramE3*np.sin(psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(-2*psis[1] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(-2*psis[1] + 2*psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(-psis[1] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[2] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(-2*psis[1] + psis[2] + psis[3] + self.paramX3))/16 + \
-               self.paramEps*(self.paramE4*np.sin(psis[3] - self.paramX4) +
-                              self.paramE4*np.sin(psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[3] + self.paramX4) -
-                              2*self.paramE4*np.sin(-2*psis[1] + 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[1] + psis[3] + self.paramX4) +
-                              self.paramE4*np.sin(psis[1] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[3] - self.paramX4) -
-                              self.paramE4*np.sin(2*psis[1] - psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(-psis[2] + 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(2*psis[2] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX4) +
-                              2*self.paramE4*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX4))/16 + \
-               self.paramEps*(-self.paramE5*np.sin(psis[3] - self.paramX5) +
-                              5*self.paramE5*np.sin(psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(-2*psis[1] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(-2*psis[1] + 2*psis[3] + self.paramX5) -
-                              5*self.paramE5*np.sin(-psis[1] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(2*psis[1] - psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[2] + 2*psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(2*psis[2] - psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(-2*psis[1] + psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] + self.paramX5))/64
-
-    def f2x1(self, psis):
-        return self.paramEps*(self.paramE1*np.sin(psis[1] + self.paramX1) -
-                              self.paramE1*np.sin(psis[1] - psis[2] + self.paramX1) +
-                              2*self.paramE2*np.sin(2*psis[1] + self.paramX2) -
-                              2*self.paramE2*np.sin(2*psis[1] - 2*psis[2] + self.paramX2))/4 + \
-               self.paramEps*(2*self.paramE3*np.sin(psis[1] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[1] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[1] - 2*psis[2] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[1] - psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(2*psis[1] - 2*psis[2] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[1] - 2*psis[2] + psis[3] + self.paramX3))/16 + \
-               self.paramEps*(self.paramE4*np.sin(psis[1] - self.paramX4) +
-                              self.paramE4*np.sin(psis[1] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] + self.paramX4) +
-                              self.paramE4*np.sin(-psis[1] + psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[1] + 2*psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[1] + 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] - psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[2] - self.paramX4) -
-                              2*self.paramE4*np.sin(2*psis[1] - 2*psis[2] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX4) -
-                              2*self.paramE4*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX4))/16 + \
-               self.paramEps*(-self.paramE5*np.sin(psis[1] - self.paramX5) +
-                              5*self.paramE5*np.sin(psis[1] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[1] + psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[1] + 2*psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[1] + 2*psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - 2*psis[2] + self.paramX5) -
-                              5*self.paramE5*np.sin(psis[1] - psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[2] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(2*psis[1] - 2*psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] - psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(-psis[1] + psis[2] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - psis[2] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX5))/64
-
-    def f2x2(self, psis):
-        return self.paramEps*(-self.paramE1*np.sin(psis[2] - self.paramX1) +
-                              self.paramE1*np.sin(psis[2] + self.paramX1) +
-                              self.paramE1*np.sin(psis[1] - psis[2] + self.paramX1) +
-                              self.paramE1*np.sin(-psis[2] + psis[3] + self.paramX1) -
-                              2*self.paramE2*np.sin(2*psis[2] - self.paramX2) +
-                              2*self.paramE2*np.sin(2*psis[2] + self.paramX2) +
-                              2*self.paramE2*np.sin(2*psis[1] - 2*psis[2] + self.paramX2) +
-                              2*self.paramE2*np.sin(-2*psis[2] + 2*psis[3] + self.paramX2))/4 + \
-               self.paramEps*(-2*self.paramE3*np.sin(psis[2] - self.paramX3) +
-                              2*self.paramE3*np.sin(psis[2] + self.paramX3) -
-                              2*self.paramE3*np.sin(2*psis[2] - self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[2] + self.paramX3) +
-                              4*self.paramE3*np.sin(psis[1] - 2*psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] - psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[1] - 2*psis[2] + self.paramX3) +
-                              4*self.paramE3*np.sin(-2*psis[2] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(-2*psis[2] + 2*psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(-psis[2] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[2] + psis[3] + self.paramX3) +
-                              4*self.paramE3*np.sin(psis[1] - 2*psis[2] + psis[3] + self.paramX3))/16 + \
-               self.paramEps*(-2*self.paramE4*np.sin(2*psis[2] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[1] + psis[2] + self.paramX4) +
-                              2*self.paramE4*np.sin(-psis[1] + 2*psis[2] + self.paramX4) +
-                              self.paramE4*np.sin(psis[1] - psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[2] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] - 2*psis[2] + self.paramX4) +
-                              2*self.paramE4*np.sin(-2*psis[2] + 2*psis[3] + self.paramX4) +
-                              self.paramE4*np.sin(-psis[2] + psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[2] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[2] + psis[3] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[2] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX4) +
-                              self.paramE4*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX4))/16 + \
-               self.paramEps*(-6*self.paramE5*np.sin(psis[2] - self.paramX5) +
-                              6*self.paramE5*np.sin(psis[2] + self.paramX5) -
-                              2*self.paramE5*np.sin(2*psis[2] - self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[2] + self.paramX5) +
-                              self.paramE5*np.sin(-psis[1] + psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[1] + 2*psis[2] + self.paramX5) +
-                              4*self.paramE5*np.sin(psis[1] - 2*psis[2] + self.paramX5) +
-                              5*self.paramE5*np.sin(psis[1] - psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[2] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] - 2*psis[2] + self.paramX5) +
-                              4*self.paramE5*np.sin(-2*psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-2*psis[2] + 2*psis[3] + self.paramX5) +
-                              5*self.paramE5*np.sin(-psis[2] + psis[3] + self.paramX5) +
-                              self.paramE5*np.sin(psis[2] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[2] - psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[1] + psis[2] + psis[3] + self.paramX5) +
-                              4*self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] + self.paramX5) +
-                              self.paramE5*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX5))/64
-
-    def f2x3(self, psis):
-        return self.paramEps*(self.paramE1*np.sin(psis[3] + self.paramX1) -
-                              self.paramE1*np.sin(-psis[2] + psis[3] + self.paramX1) +
-                              2*self.paramE2*np.sin(2*psis[3] + self.paramX2) -
-                              2*self.paramE2*np.sin(-2*psis[2] + 2*psis[3] + self.paramX2))/4 + \
-               self.paramEps*(2*self.paramE3*np.sin(psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(-2*psis[2] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(-2*psis[2] + 2*psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(-psis[2] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[2] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[1] - 2*psis[2] + psis[3] + self.paramX3))/16 + \
-               self.paramEps*(self.paramE4*np.sin(psis[3] - self.paramX4) +
-                              self.paramE4*np.sin(psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(-psis[1] + 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(2*psis[1] - psis[3] + self.paramX4) -
-                              2*self.paramE4*np.sin(-2*psis[2] + 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[2] + psis[3] + self.paramX4) +
-                              self.paramE4*np.sin(psis[2] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[2] + psis[3] - self.paramX4) -
-                              self.paramE4*np.sin(2*psis[2] - psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX4) +
-                              self.paramE4*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX4))/16 + \
-               self.paramEps*(-self.paramE5*np.sin(psis[3] - self.paramX5) +
-                              5*self.paramE5*np.sin(psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[1] + 2*psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(2*psis[1] - psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(-2*psis[2] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(-2*psis[2] + 2*psis[3] + self.paramX5) -
-                              5*self.paramE5*np.sin(-psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[2] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(2*psis[2] - psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[1] + psis[2] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] - psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - psis[3] + self.paramX5) +
-                              self.paramE5*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX5))/64
-
-    def f3x1(self, psis):
-        return self.paramEps*(self.paramE1*np.sin(psis[1] + self.paramX1) -
-                              self.paramE1*np.sin(psis[1] - psis[3] + self.paramX1) +
-                              2*self.paramE2*np.sin(2*psis[1] + self.paramX2) -
-                              2*self.paramE2*np.sin(2*psis[1] - 2*psis[3] + self.paramX2))/4 + \
-               self.paramEps*(2*self.paramE3*np.sin(psis[1] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[1] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[2] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[1] - 2*psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[1] - psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(2*psis[1] - 2*psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[1] + psis[2] - 2*psis[3] + self.paramX3))/16 + \
-               self.paramEps*(self.paramE4*np.sin(psis[1] - self.paramX4) +
-                              self.paramE4*np.sin(psis[1] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[1] + 2*psis[2] + self.paramX4) +
-                              self.paramE4*np.sin(-psis[1] + psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[1] + 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[3] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] - psis[2] + self.paramX4) -
-                              2*self.paramE4*np.sin(2*psis[1] - 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX4) -
-                              2*self.paramE4*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX4))/16 + \
-               self.paramEps*(-self.paramE5*np.sin(psis[1] - self.paramX5) +
-                              5*self.paramE5*np.sin(psis[1] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[1] + 2*psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[1] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[1] + 2*psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - 2*psis[3] + self.paramX5) -
-                              5*self.paramE5*np.sin(psis[1] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] - psis[2] + self.paramX5) -
-                              2*self.paramE5*np.sin(2*psis[1] - 2*psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(-psis[1] + psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - psis[2] - psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX5))/64
-
-    def f3x2(self, psis):
-        return self.paramEps*(self.paramE1*np.sin(psis[2] + self.paramX1) -
-                              self.paramE1*np.sin(psis[2] - psis[3] + self.paramX1) +
-                              2*self.paramE2*np.sin(2*psis[2] + self.paramX2) -
-                              2*self.paramE2*np.sin(2*psis[2] - 2*psis[3] + self.paramX2))/4 + \
-               self.paramEps*(2*self.paramE3*np.sin(psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[2] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[2] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[2] - 2*psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[2] - psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[2] + psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(2*psis[2] - 2*psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(psis[1] + psis[2] - 2*psis[3] + self.paramX3))/16 + \
-               self.paramEps*(self.paramE4*np.sin(psis[2] - self.paramX4) +
-                              self.paramE4*np.sin(psis[2] + self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[2] + self.paramX4) +
-                              2*self.paramE4*np.sin(-psis[1] + 2*psis[2] + self.paramX4) -
-                              self.paramE4*np.sin(2*psis[1] - psis[2] + self.paramX4) +
-                              self.paramE4*np.sin(-psis[2] + psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[2] + 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[2] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[2] + psis[3] - self.paramX4) -
-                              2*self.paramE4*np.sin(2*psis[2] - 2*psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX4) +
-                              self.paramE4*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX4))/16 + \
-               self.paramEps*(-self.paramE5*np.sin(psis[2] - self.paramX5) +
-                              5*self.paramE5*np.sin(psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[1] + 2*psis[2] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(2*psis[1] - psis[2] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(-psis[2] + 2*psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[2] - 2*psis[3] + self.paramX5) -
-                              5*self.paramE5*np.sin(psis[2] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[2] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(2*psis[2] - 2*psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[1] + psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] - psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] - self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] + self.paramX5) +
-                              self.paramE5*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX5))/64
-
-    def f3x3(self, psis):
-        return self.paramEps*(-self.paramE1*np.sin(psis[3] - self.paramX1) +
-                              self.paramE1*np.sin(psis[3] + self.paramX1) +
-                              self.paramE1*np.sin(psis[1] - psis[3] + self.paramX1) +
-                              self.paramE1*np.sin(psis[2] - psis[3] + self.paramX1) -
-                              2*self.paramE2*np.sin(2*psis[3] - self.paramX2) +
-                              2*self.paramE2*np.sin(2*psis[3] + self.paramX2) +
-                              2*self.paramE2*np.sin(2*psis[1] - 2*psis[3] + self.paramX2) +
-                              2*self.paramE2*np.sin(2*psis[2] - 2*psis[3] + self.paramX2))/4 + \
-               self.paramEps*(-2*self.paramE3*np.sin(psis[3] - self.paramX3) +
-                              2*self.paramE3*np.sin(psis[3] + self.paramX3) -
-                              2*self.paramE3*np.sin(2*psis[3] - self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[3] + self.paramX3) +
-                              4*self.paramE3*np.sin(psis[1] - 2*psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] - psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[1] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[1] - 2*psis[3] + self.paramX3) +
-                              4*self.paramE3*np.sin(psis[2] - 2*psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[2] - psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(psis[2] + psis[3] + self.paramX3) +
-                              2*self.paramE3*np.sin(2*psis[2] - 2*psis[3] + self.paramX3) +
-                              4*self.paramE3*np.sin(psis[1] + psis[2] - 2*psis[3] + self.paramX3))/16 + \
-               self.paramEps*(-2*self.paramE4*np.sin(2*psis[3] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[1] + psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(-psis[1] + 2*psis[3] + self.paramX4) +
-                              self.paramE4*np.sin(psis[1] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] + psis[3] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[1] - 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(-psis[2] + psis[3] + self.paramX4) +
-                              2*self.paramE4*np.sin(-psis[2] + 2*psis[3] + self.paramX4) +
-                              self.paramE4*np.sin(psis[2] - psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[2] + psis[3] - self.paramX4) +
-                              2*self.paramE4*np.sin(2*psis[2] - 2*psis[3] + self.paramX4) -
-                              self.paramE4*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX4) +
-                              self.paramE4*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX4))/16 + \
-               self.paramEps*(-6*self.paramE5*np.sin(psis[3] - self.paramX5) +
-                              6*self.paramE5*np.sin(psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(2*psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[3] + self.paramX5) +
-                              self.paramE5*np.sin(-psis[1] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[1] + 2*psis[3] + self.paramX5) +
-                              4*self.paramE5*np.sin(psis[1] - 2*psis[3] + self.paramX5) +
-                              5*self.paramE5*np.sin(psis[1] - psis[3]+ self.paramX5) -
-                              self.paramE5*np.sin(psis[1] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[1] - 2*psis[3] + self.paramX5) +
-                              self.paramE5*np.sin(-psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[2] + 2*psis[3] + self.paramX5) +
-                              4*self.paramE5*np.sin(psis[2] - 2*psis[3] + self.paramX5) +
-                              5*self.paramE5*np.sin(psis[2] - psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[2] + psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(2*psis[2] - 2*psis[3] + self.paramX5) +
-                              2*self.paramE5*np.sin(-psis[1] + psis[2] + psis[3] + self.paramX5) -
-                              self.paramE5*np.sin(psis[1] - 2*psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] - psis[3] + self.paramX5) -
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] - self.paramX5) +
-                              2*self.paramE5*np.sin(psis[1] - psis[2] + psis[3] + self.paramX5) +
-                              4*self.paramE5*np.sin(psis[1] + psis[2] - 2*psis[3] + self.paramX5) +
-                              self.paramE5*np.sin(2*psis[1] - psis[2] - psis[3] + self.paramX5))/64
-
 
     def getRestrictionJac(self,X):
         x, y = X
