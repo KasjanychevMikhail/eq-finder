@@ -13,8 +13,8 @@
  'toSddlPrxtyEv': 1e-3,
  'toTargetSinkPrxtyEv': 9*1e-6,
  'toTargetSddlPrxtyEv': 9*1e-3,
- 'toSinkPrxty': 1.1*1e-5,
- 'toSddlPrxty': 1.1*1e-2,
+ 'toSinkPrxty': 2.6,
+ 'toSddlPrxty': 2.6,
 },
 'ParametersShgoEqFinder':
 {'numOfSamp': 1000,
