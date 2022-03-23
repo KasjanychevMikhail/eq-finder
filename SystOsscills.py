@@ -1,5 +1,8 @@
 import numpy as np
 import math as m
+from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 class FivePhaseOscillators:
     def __init__(self, paramE1, paramE2, paramE3, paramE4, paramE5, paramX1, paramX2, paramX3, paramX4, paramX5,
@@ -57,7 +60,7 @@ class FivePhaseOscillators:
                            self.funcG5(psis[k] + psis[l] - psis[m] - psis[0])
         return tmp
 
-    def getReducedSystem(self, psis):
+    def getReducedSystem(self, t, psis):
         psis = [0] + list(psis)
         res = [0., 0., 0., 0.]
         for i in range(4):
@@ -145,11 +148,11 @@ class FivePhaseOscillators:
 
     def getRestrictionJac(self,X):
         x, y = X
-        psis = [0., x, y, 0.]
-        divs1 = self.partialDer(psis, 1)
-        divs2 = self.partialDer(psis, 2)
-        return np.array([[divs1[0], divs2[0]],
-                         [divs1[1], divs2[1]]])
+        psis = [0., 0., x, y]
+        divs1 = self.partialDer(psis, 2)
+        divs2 = self.partialDer(psis, 3)
+        return np.array([[divs1[1], divs2[1]],
+                         [divs1[2], divs2[2]]])
     
     def getReducedSystemJac(self,X):  
         x, y, z = X
