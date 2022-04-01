@@ -60,7 +60,7 @@ class FivePhaseOscillators:
                            self.funcG5(psis[k] + psis[l] - psis[m] - psis[0])
         return tmp
 
-    def getReducedSystem(self, t, psis):
+    def getReducedSystem(self, psis):
         psis = [0] + list(psis)
         res = [0., 0., 0., 0.]
         for i in range(4):
