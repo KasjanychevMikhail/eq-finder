@@ -1,3 +1,4 @@
+#Parameter values for displaying a map of approximate heteroclinic cycles of the system. The result indicates the presence of chaos in the system with the current parameters.
 {
 'NumericTolerance':
 {'zeroImagPartEps': 1e-14,
