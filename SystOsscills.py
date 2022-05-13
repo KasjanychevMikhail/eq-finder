@@ -1,8 +1,5 @@
 import numpy as np
 import math as m
-from scipy.integrate import solve_ivp
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 class FivePhaseOscillators:
     def __init__(self, paramE1, paramE2, paramE3, paramE4, paramE5, paramX1, paramX2, paramX3, paramX4, paramX5,
@@ -167,4 +164,4 @@ class FivePhaseOscillators:
     
     def getParams(self):          
         return [self.paramE1,self.paramE2,self.paramE3,self.paramE4, self.paramE5, self.paramX1, self.paramX2,
-                self.paramX3, self.paramX4, self.paramX5. self.paramEps]
+                self.paramX3, self.paramX4, self.paramX5, self.paramEps]
