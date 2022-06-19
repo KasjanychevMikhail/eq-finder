@@ -14,7 +14,7 @@
  'toTargetSinkPrxtyEv': 9*1e-6,
  'toTargetSddlPrxtyEv': 9*1e-3,
  'toSinkPrxty': 1.1*1e-5,
- 'toSddlPrxty': 1.1*1e-1,
+ 'toSddlPrxty': 1.0*1e-2,
 },
 'ParametersShgoEqFinder':
 {'numOfSamp': 1000,
@@ -23,12 +23,12 @@
 },
 'Parameters':
 {'x4val': 1.74,
-'x1_min': 0.254 -0.01,
-'x1_max': 0.254 +0.01,
-'x1_N': 31,
-'x2_min': 0.418 -0.01,
-'x2_max': 0.418 +0.01,
-'x2_N': 31,
+'x1_min': 0.22379 -0.0001,
+'x1_max': 0.22379 +0.0001,
+'x1_N': 61,
+'x2_min': 0.316 -0.0001,
+'x2_max': 0.316 +0.0001,
+'x2_N': 61,
 'useEvents': True,
 },
 }

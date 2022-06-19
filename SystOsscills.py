@@ -1,7 +1,7 @@
 import numpy as np
 import math as m
 
-class FivePhaseOscillators:
+class FourPhaseOscillators:
     def __init__(self, paramE1, paramE2, paramE3, paramE4, paramE5, paramX1, paramX2, paramX3, paramX4, paramX5,
                  paramEps):
         self.paramE1 = paramE1
